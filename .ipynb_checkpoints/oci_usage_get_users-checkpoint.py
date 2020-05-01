@@ -156,7 +156,7 @@ def update_users(connection):
     cursor.executemany(None, userlist)
     connection.commit()
     print("Users Updated")
-    cursor.close()
+
 
 
 ##########################################################################
@@ -209,7 +209,6 @@ def main_process():
             )
             userlist.append(user_data)
         print("Downloaded Users")
-        update_users(connection)
     except Exception as e:
         print("\nError extracting users - " + str(e) + "\n")
         raise SystemExit
@@ -227,6 +226,7 @@ def main_process():
         # Check tables structure
         print("\nChecking Database Structure...")
         check_database_table_structure_users(connection)
+        update_users(connection)
         cursor.close()
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
