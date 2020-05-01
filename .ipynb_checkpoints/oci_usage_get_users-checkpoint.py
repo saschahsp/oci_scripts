@@ -160,7 +160,6 @@ def main_process():
         print("")
         
         print("Getting Users")
-        userclient = identity.IdentityClient(config)
         l_users = userclient.list_users(compartment_id=tenancy.id)
         userlist = []
         for i in range(len(l_users.data)):
