@@ -125,7 +125,7 @@ def check_database_table_structure_users(connection):
         raise Exception("\nError manipulating database at check_database_table_structure_usage() - " + str(e))
 
 ##########################################################################
-# Update Users
+# Update Users Function
 ##########################################################################
 
 def update_users(connection):
