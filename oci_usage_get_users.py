@@ -151,7 +151,7 @@ def update_users(connection):
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
     sql += ":6, :7, :8, :9, :10 "
-    sql += ")
+    sql += ")"
     cursor.prepare(sql)
     cursor.executemany(None, userlist)
     connection.commit()
