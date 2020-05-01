@@ -10,6 +10,17 @@ import cx_Oracle
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
 
 ##########################################################################
+# Print header centered
+##########################################################################
+def print_header(name, category):
+    options = {0: 90, 1: 60, 2: 30}
+    chars = int(options[category])
+    print("")
+    print('#' * chars)
+    print("#" + name.center(chars - 2, " ") + "#")
+    print('#' * chars)
+
+##########################################################################
 # Create signer
 ##########################################################################
 
