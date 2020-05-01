@@ -124,8 +124,39 @@ def check_database_table_structure_users(connection):
     except Exception as e:
         raise Exception("\nError manipulating database at check_database_table_structure_usage() - " + str(e))
 
+##########################################################################
+# Update Users
+##########################################################################
 
-
+def update_users(connection):
+    
+    cursor = connection.cursor()
+    sql = "delete from OCI_USERS"
+    cursor.execute(sql)
+    sql = "begin commit; end;"
+    cursor.execute(sql)
+    print("Users Deleted")
+######
+    sql = "INSERT INTO OCI_USERS ("
+    sql += "    COMPARTMENT_ID,"
+    sql += "    DESCRIPTION,"
+    sql += "    EMAIL,"
+    sql += "    OCID,"
+    sql += "    IDENTITY_PROVIDER_ID,"
+    sql += "    INACTIVE,"
+    sql += "    MFA_ACTIVATED,"
+    sql += "    LIFECYCLE_STATE,"
+    sql += "    NAME,"
+    sql += "    TIME_CREATED"
+    sql += ") VALUES ("
+    sql += ":1, :2, :3, :4, :5,  "
+    sql += ":6, :7, :8, :9, :10 "
+    sql += ")
+    cursor.prepare(sql)
+    cursor.executemany(None, userlist)
+    connection.commit()
+    print("Users Updated")
+    cursor.close()
 
 
 ##########################################################################
