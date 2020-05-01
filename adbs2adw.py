@@ -6,6 +6,7 @@ import gzip
 import os
 import csv
 import cx_Oracle
+import time
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
 
@@ -84,38 +85,46 @@ def set_parser_arguments():
 
     return result
 ##########################################################################
-# def check table users
+# def check table adbs
 ##########################################################################
-def check_database_table_structure_users(connection):
+def check_database_table_structure_adbs(connection):
     try:
         # open cursor
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_USERS'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_ADBS'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
         # if table not exist, create it
         if val == 0:
-            print("Table OCI_USERS was not exist, creating")
-            sql = "create table OCI_USERS ("
+            print("Table OCI_ADBS was not exist, creating")
+            sql = "create table OCI_ADBS ("
+            sql += "    CONTAINER_ID             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    DESCRIPTION             VARCHAR2(200),"
-            sql += "    EMAIL      VARCHAR(100),"
+            sql += "    OCPUS    NUMBER,"
+            sql += "    DISPLAY_NAME      VARCHAR(100),"
             sql += "    OCID             VARCHAR2(200),"
-            sql += "    IDENTITY_PROVIDER_ID            VARCHAR2(300),"
-            sql += "    INACTIVE      VARCHAR2(30),"
-            sql += "    MFA_ACTIVATED    VARCHAR2(30),"
+            sql += "    AUTO_SCALING            VARCHAR2(30),"
+            sql += "    DEDICATED      VARCHAR2(30),"
+            sql += "    FREE_TIER    VARCHAR2(30),"
+            sql += "    PREVIEW    VARCHAR2(100),"
+            sql += "    LICENSE_MODEL              VARCHAR(30),"
             sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
-            sql += "    NAME              VARCHAR2(100),"
-            sql += "    TIME_CREATED              VARCHAR2(500)"
+            sql += "    TIME_CREATED              VARCHAR2(30),"
+            sql += "    TIME_DELETION_OF_FREE_ADB              VARCHAR2(300),"
+            sql += "    TIME_MAINTENANCE_BEGIN              VARCHAR2(300),"
+            sql += "    TIME_MAINTENANCE_END              VARCHAR2(300),"
+            sql += "    TIME_RECLAMATION_OF_FREE_ADB              VARCHAR2(300),"
+            sql += "    DEFINED_TAGS              VARCHAR2(500)"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
-            print("Table OCI_USERS created")
+            print("Table OCI_ADBS created")
+            cursor.close()
         else:
-            print("Table OCI_USERS exist")
+            print("Table OCI_ADBS exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -124,38 +133,51 @@ def check_database_table_structure_users(connection):
     except Exception as e:
         raise Exception("\nError manipulating database at check_database_table_structure_usage() - " + str(e))
 
+
+
+
 ##########################################################################
-# Update Users Function
+# Update ADBs Function
 ##########################################################################
 
-def update_users(connection,userlist):
+def update_adbs(connection,adblist):
     
     cursor = connection.cursor()
-    sql = "delete from OCI_USERS"
+    sql = "delete from OCI_ADBS"
     cursor.execute(sql)
     sql = "begin commit; end;"
     cursor.execute(sql)
-    print("Users Deleted")
+    print("ADBS Deleted")
 ######
-    sql = "INSERT INTO OCI_USERS ("
-    sql += "    COMPARTMENT_ID,"
-    sql += "    DESCRIPTION,"
-    sql += "    EMAIL,"
-    sql += "    OCID,"
-    sql += "    IDENTITY_PROVIDER_ID,"
-    sql += "    INACTIVE,"
-    sql += "    MFA_ACTIVATED,"
-    sql += "    LIFECYCLE_STATE,"
-    sql += "    NAME,"
-    sql += "    TIME_CREATED"
+    sql = "INSERT INTO OCI_ADBS ("
+    sql += "CONTAINER_ID,"
+    sql += "COMPARTMENT_ID,"
+    sql += "OCPUS,"
+    sql += "DISPLAY_NAME,"
+    sql += "OCID,"
+    sql += "AUTO_SCALING,"
+    sql += "DEDICATED,"
+    sql += "FREE_TIER,"
+    sql += "PREVIEW,"
+    sql += "LICENSE_MODEL,"
+    sql += "LIFECYCLE_STATE,"
+    sql += "TIME_CREATED,"
+    sql += "TIME_DELETION_OF_FREE_ADB,"
+    sql += "TIME_MAINTENANCE_BEGIN,"
+    sql += "TIME_MAINTENANCE_END,"
+    sql += "TIME_RECLAMATION_OF_FREE_ADB,"
+    sql += "DEFINED_TAGS"
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
-    sql += ":6, :7, :8, :9, :10 "
-    sql += ")"
+    sql += ":6, :7, :8, :9, :10, "
+    sql += ":11, :12 , :13, :14, :15, :16, :17"
+    sql += ") "
+
     cursor.prepare(sql)
-    cursor.executemany(None, userlist)
+    cursor.executemany(None, adblist)
     connection.commit()
-    print("Users Updated")
+    cursor.close()
+    print("ADBs Updated")
 
 
 
@@ -176,44 +198,6 @@ def main_process():
     print("Command Line : " + ' '.join(x for x in sys.argv[1:]))
 
     ############################################
-    # Identity extract compartments
-    ############################################
-    tenancy = None
-    try:
-        print("\nConnecting to Identity Service...")
-        identity = oci.identity.IdentityClient(config, signer=signer)
-        if cmd.proxy:
-            identity.base_client.session.proxies = {'https': cmd.proxy}
-
-        tenancy = identity.get_tenancy(config["tenancy"]).data
-        print("   Tenant Name : " + str(tenancy.name))
-        print("   Tenant Id   : " + tenancy.id)
-        print("")
-        
-        print("Getting Users")
-        l_users = identity.list_users(compartment_id=tenancy.id)
-        userlist = []
-        for i in range(len(l_users.data)):
-            user_data = (
-                l_users.data[i].compartment_id,
-                l_users.data[i].description,
-                l_users.data[i].email,
-                l_users.data[i].id,
-                l_users.data[i].identity_provider_id,
-                str(l_users.data[i].inactive_status),
-                str(l_users.data[i].is_mfa_activated),
-                l_users.data[i].lifecycle_state,
-                l_users.data[i].name,
-                l_users.data[i].time_created.isoformat()
-
-            )
-            userlist.append(user_data)
-        print("Downloaded Users")
-    except Exception as e:
-        print("\nError extracting users - " + str(e) + "\n")
-        raise SystemExit
-
-    ############################################
     # connect to database
     ############################################
     connection = None
@@ -225,18 +209,75 @@ def main_process():
 
         # Check tables structure
         print("\nChecking Database Structure...")
-        check_database_table_structure_users(connection)
-    ############################################
-    # Update Users
-    ############################################
-        update_users(connection,userlist)
-        cursor.close()
+        check_database_table_structure_adbs(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
 
     except Exception as e:
         raise Exception("\nError manipulating database - " + str(e))
+    ############################################
+    # Getting Compartments from Database
+    ############################################
+        # open cursor
+    cursor = connection.cursor()
+    print("Getting Compartments from Database")
+    # check if OCI_COMPARTMENTS table exist, if not create
+    sql = "select OCID from oci_compartments where LIFECYCLE_STATE = 'ACTIVE'"
+    cursor.execute(sql)
+    l_ocid = cursor.fetchall()
+    l_ocid_n = []
+    for c in range(len(l_ocid)):
+        l_ocid_n.append(l_ocid[c][0])
+
+    ############################################
+    # API extract ADBs
+    ############################################
+
+    try:
+        print("\nConnecting to ADB Client...")
+        adbclient = oci.database.DatabaseClient(config, signer=signer)
+        if cmd.proxy:
+            adbclient.base_client.session.proxies = {'https': cmd.proxy}
+        
+        print("Getting ADBs")
+        adblist = []
+        for a in range(len(l_ocid_n)):
+            testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
+            if len(testadb.data) != 0:
+                for i in range(len(testadb.data)):
+
+                    row_data = (
+                        testadb.data[i].autonomous_container_database_id,
+                        testadb.data[i].compartment_id,
+                        testadb.data[i].cpu_core_count,
+                        testadb.data[i].display_name,
+                        testadb.data[i].id,
+                        str(testadb.data[i].is_auto_scaling_enabled),
+                        str(testadb.data[i].is_dedicated),
+                        str(testadb.data[i].is_free_tier),
+                        str(testadb.data[i].is_preview),
+                        testadb.data[i].license_model,
+                        testadb.data[i].lifecycle_state,
+                        testadb.data[i].time_created.isoformat(),
+                        str(testadb.data[i].time_deletion_of_free_autonomous_database),
+                        testadb.data[i].time_maintenance_begin.isoformat(),
+                        testadb.data[i].time_maintenance_end.isoformat(),
+                        str(testadb.data[i].time_reclamation_of_free_autonomous_database),
+                        str(testadb.data[i].defined_tags)
+                        )
+                    adblist.append(row_data)      
+                    print("Downloaded ADB:",testadb.data[i].display_name)
+    except Exception as e:
+        print("\nError extracting ADBs - " + str(e) + "\n")
+        raise SystemExit           
+                        
+    ############################################
+    # Update ADBs
+    ############################################
+    update_adbs(connection,adblist)
+    cursor.close()
+
     ############################################
     # print completed
     ############################################

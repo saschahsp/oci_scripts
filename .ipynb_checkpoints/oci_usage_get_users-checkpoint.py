@@ -128,7 +128,7 @@ def check_database_table_structure_users(connection):
 # Update Users Function
 ##########################################################################
 
-def update_users(connection):
+def update_users(connection,userlist):
     
     cursor = connection.cursor()
     sql = "delete from OCI_USERS"
@@ -229,7 +229,7 @@ def main_process():
     ############################################
     # Update Users
     ############################################
-        update_users(connection)
+        update_users(connection,userlist)
         cursor.close()
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
