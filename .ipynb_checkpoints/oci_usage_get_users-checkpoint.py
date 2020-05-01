@@ -160,7 +160,7 @@ def main_process():
         print("")
         
         print("Getting Users")
-        l_users = userclient.list_users(compartment_id=tenancy.id)
+        l_users = identity.list_users(compartment_id=tenancy.id)
         userlist = []
         for i in range(len(l_users.data)):
             user_data = (
