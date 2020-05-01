@@ -226,6 +226,9 @@ def main_process():
         # Check tables structure
         print("\nChecking Database Structure...")
         check_database_table_structure_users(connection)
+    ############################################
+    # Update Users
+    ############################################
         update_users(connection)
         cursor.close()
     except cx_Oracle.DatabaseError as e:
