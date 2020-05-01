@@ -209,6 +209,7 @@ def main_process():
             )
             userlist.append(user_data)
         print("Downloaded Users")
+        update_users(connection)
     except Exception as e:
         print("\nError extracting users - " + str(e) + "\n")
         raise SystemExit
