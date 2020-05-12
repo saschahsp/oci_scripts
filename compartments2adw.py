@@ -6,8 +6,15 @@ import gzip
 import os
 import csv
 import cx_Oracle
+import time
+import pytz
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
+
+naive= datetime.datetime.now()
+timezone = pytz.timezone("Europe/Berlin")
+aware1 = naive.astimezone(timezone)
+current_time = str(aware1.strftime("%Y-%m-%d %H:%M:%S"))
 
 ##########################################################################
 # Print header centered
@@ -84,38 +91,41 @@ def set_parser_arguments():
 
     return result
 ##########################################################################
-# def check table users
+# def check table compartments
 ##########################################################################
-def check_database_table_structure_users(connection):
+def check_database_table_structure_compartments(connection):
     try:
         # open cursor
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_USERS'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_COMPARTMENTS'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
         # if table not exist, create it
         if val == 0:
-            print("Table OCI_USERS was not exist, creating")
-            sql = "create table OCI_USERS ("
-            sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    DESCRIPTION             VARCHAR2(200),"
-            sql += "    EMAIL      VARCHAR(100),"
-            sql += "    OCID             VARCHAR2(200),"
-            sql += "    IDENTITY_PROVIDER_ID            VARCHAR2(300),"
-            sql += "    INACTIVE      VARCHAR2(30),"
-            sql += "    MFA_ACTIVATED    VARCHAR2(30),"
-            sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
-            sql += "    NAME              VARCHAR2(100),"
-            sql += "    TIME_CREATED              VARCHAR2(500)"
+            print("Table OCI_COMPARTMENTS was not exist, creating")
+            sql = "create table OCI_COMPARTMENTS ("
+            sql += "    PARENT             VARCHAR2(100),"
+            sql += "    PARENTOCID             VARCHAR2(100),"
+            sql += "    OCID                 VARCHAR2(100),"
+            sql += "    DEFINED_TAGS    VARCHAR(500),"
+            sql += "    DESCRIPTION      VARCHAR(100),"
+            sql += "    FREEFORM_TAGS             VARCHAR2(500),"
+            sql += "    INACTIVE_STATUS            VARCHAR2(30),"
+            sql += "    IS_ACCESSIBLE      VARCHAR2(30),"
+            sql += "    LIFECYCLE_STATE    VARCHAR2(30),"
+            sql += "    NAME    VARCHAR2(100),"
+            sql += "    TIME_CREATED              VARCHAR(300),"
+            sql += "    PATH              VARCHAR2(300),"
+            sql += "    DEPTH              NUMBER"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
-            print("Table OCI_USERS created")
+            print("Table OCI_COMPARTMENTS created")
         else:
-            print("Table OCI_USERS exist")
+            print("Table OCI_COMPARTMENTS exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -124,40 +134,70 @@ def check_database_table_structure_users(connection):
     except Exception as e:
         raise Exception("\nError manipulating database at check_database_table_structure_usage() - " + str(e))
 
+
+
+
 ##########################################################################
-# Update Users Function
+# Update ADBs Function
 ##########################################################################
 
-def update_users(connection,userlist):
+def update_compartments(connection,compartmentlist):
     
     cursor = connection.cursor()
-    sql = "delete from OCI_USERS"
+    sql = "delete from OCI_COMPARTMENTS"
     cursor.execute(sql)
     sql = "begin commit; end;"
     cursor.execute(sql)
-    print("Users Deleted")
+    print("COMPARTMENTS Deleted")
 ######
-    sql = "INSERT INTO OCI_USERS ("
-    sql += "    COMPARTMENT_ID,"
-    sql += "    DESCRIPTION,"
-    sql += "    EMAIL,"
-    sql += "    OCID,"
-    sql += "    IDENTITY_PROVIDER_ID,"
-    sql += "    INACTIVE,"
-    sql += "    MFA_ACTIVATED,"
-    sql += "    LIFECYCLE_STATE,"
-    sql += "    NAME,"
-    sql += "    TIME_CREATED"
+    # insert bulk to database
+    cursor = cx_Oracle.Cursor(connection)
+    sql = "INSERT INTO OCI_COMPARTMENTS ("
+    sql += "PARENT,"
+    sql += "PARENTOCID,"
+    sql += "OCID,"
+    sql += "DEFINED_TAGS, "
+    sql += "DESCRIPTION, "
+    sql += "FREEFORM_TAGS, "
+    # 6
+    sql += "INACTIVE_STATUS, "
+    sql += "IS_ACCESSIBLE, "
+    sql += "LIFECYCLE_STATE, "
+    sql += "NAME, "
+    sql += "TIME_CREATED, "
+    # 11
+    sql += "PATH, "
+    sql += "DEPTH "
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
-    sql += ":6, :7, :8, :9, :10 "
-    sql += ")"
+    sql += ":6, :7, :8, :9, :10, "
+    sql += ":11, :12 , :13"
+    sql += ") "
+
     cursor.prepare(sql)
-    cursor.executemany(None, userlist)
+    cursor.executemany(None, compartmentlist)
     connection.commit()
-    print("Users Updated")
+    cursor.close()
 
+##########################################################################
+# Insert Update Time
+##########################################################################
 
+def update_time(connection, current_time):
+    
+    cursor = connection.cursor()
+    report = 'COMPARTMENTS'
+    time_updated = current_time
+                
+######
+
+    sql = """insert into OCI_UPDATE_TIME (REPORT, TIME_UPDATED)
+          values (:report, :time_updated)"""
+    cursor.execute(sql, [report, time_updated])
+
+    connection.commit()
+    cursor.close()
+    print("TIME Updated")
 
 ##########################################################################
 # Main
@@ -176,44 +216,6 @@ def main_process():
     print("Command Line : " + ' '.join(x for x in sys.argv[1:]))
 
     ############################################
-    # Identity extract compartments
-    ############################################
-    tenancy = None
-    try:
-        print("\nConnecting to Identity Service...")
-        identity = oci.identity.IdentityClient(config, signer=signer)
-        if cmd.proxy:
-            identity.base_client.session.proxies = {'https': cmd.proxy}
-
-        tenancy = identity.get_tenancy(config["tenancy"]).data
-        print("   Tenant Name : " + str(tenancy.name))
-        print("   Tenant Id   : " + tenancy.id)
-        print("")
-        
-        print("Getting Users")
-        l_users = identity.list_users(compartment_id=tenancy.id)
-        userlist = []
-        for i in range(len(l_users.data)):
-            user_data = (
-                l_users.data[i].compartment_id,
-                l_users.data[i].description,
-                l_users.data[i].email,
-                l_users.data[i].id,
-                l_users.data[i].identity_provider_id,
-                str(l_users.data[i].inactive_status),
-                str(l_users.data[i].is_mfa_activated),
-                l_users.data[i].lifecycle_state,
-                l_users.data[i].name,
-                l_users.data[i].time_created.isoformat()
-
-            )
-            userlist.append(user_data)
-        print("Downloaded Users")
-    except Exception as e:
-        print("\nError extracting users - " + str(e) + "\n")
-        raise SystemExit
-
-    ############################################
     # connect to database
     ############################################
     connection = None
@@ -225,24 +227,113 @@ def main_process():
 
         # Check tables structure
         print("\nChecking Database Structure...")
-        check_database_table_structure_users(connection)
-    ############################################
-    # Update Users
-    ############################################
-        update_users(connection,userlist)
-        cursor.close()
+        check_database_table_structure_adbs(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
 
     except Exception as e:
         raise Exception("\nError manipulating database - " + str(e))
+
+
+    ############################################
+    # API extract COMPARTMENTS
+    ############################################
+
+    try:
+        print("\nConnecting to IDENTITY/COMPARTMENT Client...")
+        idclient = oci.identity.IdentityClient(config, signer=signer)
+        if cmd.proxy:
+            idclient.base_client.session.proxies = {'https': cmd.proxy}
+        tenancy = idclient.get_tenancy(config["tenancy"]).data
+        print("   Tenant Name : " + str(tenancy.name))
+        print("   Tenant Id   : " + tenancy.id)
+        print("")
+        print("GettingCOMPARTMENTS")
+        data = []
+        compartments = idclient.list_compartments(compartment_id=tenancy.id)
+        for i in range(len(compartments.data)):
+            if i == 6:
+                time.sleep(60)
+            print("Getting...", "root / ",compartments.data[i].name, 'i:', i)
+            row_data = (
+                "root",
+                compartments.data[i].compartment_id,
+                compartments.data[i].id,
+                str(compartments.data[i].defined_tags),
+                compartments.data[i].description,
+                str(compartments.data[i].freeform_tags),
+                compartments.data[i].inactive_status,
+                compartments.data[i].is_accessible,
+                compartments.data[i].lifecycle_state,
+                compartments.data[i].name,
+                compartments.data[i].time_created.isoformat(),
+                'root/',
+                1
+                    )
+            data.append(row_data)
+            compartments1 = idclient.list_compartments(compartment_id= compartments.data[i].id)
+            print('the parent is: ', 'root', 'i:', i)
+            if len(compartments1.data) != 0:
+                print('root'," / ", compartments.data[i].name, "nested...")
+                for a in range(len(compartments1.data)):
+                    row_data = (
+                        compartments.data[i].name,
+                        compartments1.data[a].compartment_id,
+                        compartments1.data[a].id,
+                        str(compartments1.data[a].defined_tags),
+                        compartments1.data[a].description,
+                        str(compartments1.data[a].freeform_tags),
+                        compartments1.data[a].inactive_status,
+                        compartments1.data[a].is_accessible,
+                        compartments1.data[a].lifecycle_state,
+                        compartments1.data[a].name,
+                        compartments1.data[a].time_created.isoformat(),
+                        'root/' + compartments.data[i].name + '/'+ compartments1.data[a].name,
+                        2
+                            )
+                    data.append(row_data)
+                    print("\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name)
+                    print('\tthe parent is: ', compartments.data[i].name, 'i:', i, 'a:',a)
+                    compartments2 = idclient.list_compartments(compartment_id= compartments1.data[a].id)
+                    if len(compartments2.data) != 0:               
+                        print('\troot'," / ", compartments.data[i].name,' / ', compartments1.data[i].name,"nested...")
+                        for b in range(len(compartments2.data)):
+                            row_data = (
+                                compartments1.data[a].name,
+                                compartments2.data[b].compartment_id,
+                                compartments2.data[b].id,
+                                str(compartments2.data[b].defined_tags),
+                                compartments2.data[b].description,
+                                str(compartments2.data[b].freeform_tags),
+                                compartments2.data[b].inactive_status,
+                                compartments2.data[b].is_accessible,
+                                compartments2.data[b].lifecycle_state,
+                                compartments2.data[b].name,
+                                compartments2.data[b].time_created.isoformat(),
+                                   'root/' + compartments.data[i].name + '/'+ compartments1.data[a].name + '/' + compartments2.data[b].name
+                                      )
+                            data.append(row_data)
+                            print("\t\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name, " / ",compartments2.data[b].name)
+                            print('\t\tthe parent is: ', compartments1.data[a].name, 'i:', i, 'a:',a ,'b:', b)
+
+
+    except Exception as e:
+        print("\nError extracting COMPARTMENTS - " + str(e) + "\n")
+        raise SystemExit           
+                        
+    ############################################
+    # Update ADBs
+    ############################################
+    update_compartments(connection,data)
+    cursor.close()
+
     ############################################
     # print completed
     ############################################
-    print("\nCompleted at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-
+    print("\nCompleted at " + current_time)
+    update_time(connection, current_time)
+    
 ##########################################################################
 # Execute Main Process
 ##########################################################################

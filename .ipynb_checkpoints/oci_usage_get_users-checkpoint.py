@@ -6,8 +6,14 @@ import gzip
 import os
 import csv
 import cx_Oracle
+import pytz
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
+
+naive= datetime.datetime.now()
+timezone = pytz.timezone("Europe/Berlin")
+aware1 = naive.astimezone(timezone)
+current_time = str(aware1.strftime("%Y-%m-%d %H:%M:%S"))
 
 ##########################################################################
 # Print header centered
@@ -157,6 +163,26 @@ def update_users(connection,userlist):
     connection.commit()
     print("Users Updated")
 
+##########################################################################
+# Insert Update Time
+##########################################################################
+
+def update_time(connection, current_time):
+    
+    cursor = connection.cursor()
+    report = 'USERS'
+    time_updated = current_time
+                
+######
+
+    sql = """insert into OCI_UPDATE_TIME (REPORT, TIME_UPDATED)
+          values (:report, :time_updated)"""
+    cursor.execute(sql, [report, time_updated])
+
+    connection.commit()
+    cursor.close()
+    print("TIME Updated")
+
 
 
 ##########################################################################
@@ -240,7 +266,8 @@ def main_process():
     ############################################
     # print completed
     ############################################
-    print("\nCompleted at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    print("\nCompleted at " + current_time)
+    update_time(connection, current_time)
 
 
 ##########################################################################

@@ -6,14 +6,9 @@ import gzip
 import os
 import csv
 import cx_Oracle
-import pytz
+import time
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
-
-naive= datetime.datetime.now()
-timezone = pytz.timezone("Europe/Berlin")
-aware1 = naive.astimezone(timezone)
-current_time = str(aware1.strftime("%Y-%m-%d %H:%M:%S"))
 
 ##########################################################################
 # Print header centered
@@ -90,38 +85,30 @@ def set_parser_arguments():
 
     return result
 ##########################################################################
-# def check table users
+# def check table adbs
 ##########################################################################
-def check_database_table_structure_users(connection):
+def check_database_table_structure_updatetime(connection):
     try:
         # open cursor
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_USERS'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_UPDATE_TIME'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
         # if table not exist, create it
         if val == 0:
-            print("Table OCI_USERS was not exist, creating")
-            sql = "create table OCI_USERS ("
-            sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    DESCRIPTION             VARCHAR2(200),"
-            sql += "    EMAIL      VARCHAR(100),"
-            sql += "    OCID             VARCHAR2(200),"
-            sql += "    IDENTITY_PROVIDER_ID            VARCHAR2(300),"
-            sql += "    INACTIVE      VARCHAR2(30),"
-            sql += "    MFA_ACTIVATED    VARCHAR2(30),"
-            sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
-            sql += "    NAME              VARCHAR2(100),"
-            sql += "    TIME_CREATED              VARCHAR2(500)"
+            print("Table OCI_UPDATE_TIME was not exist, creating")
+            sql = "create table OCI_UPDATE_TIME ("
+            sql += "    REPORT             VARCHAR2(200),"
+            sql += "    TIME_UPDATED              VARCHAR2(500)"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
-            print("Table OCI_USERS created")
+            print("Table OCI_UPDATE_TIME created")
         else:
-            print("Table OCI_USERS exist")
+            print("Table OCI_UPDATE_TIME exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -129,59 +116,6 @@ def check_database_table_structure_users(connection):
 
     except Exception as e:
         raise Exception("\nError manipulating database at check_database_table_structure_usage() - " + str(e))
-
-##########################################################################
-# Update Users Function
-##########################################################################
-
-def update_users(connection,userlist):
-    
-    cursor = connection.cursor()
-    sql = "delete from OCI_USERS"
-    cursor.execute(sql)
-    sql = "begin commit; end;"
-    cursor.execute(sql)
-    print("Users Deleted")
-######
-    sql = "INSERT INTO OCI_USERS ("
-    sql += "    COMPARTMENT_ID,"
-    sql += "    DESCRIPTION,"
-    sql += "    EMAIL,"
-    sql += "    OCID,"
-    sql += "    IDENTITY_PROVIDER_ID,"
-    sql += "    INACTIVE,"
-    sql += "    MFA_ACTIVATED,"
-    sql += "    LIFECYCLE_STATE,"
-    sql += "    NAME,"
-    sql += "    TIME_CREATED"
-    sql += ") VALUES ("
-    sql += ":1, :2, :3, :4, :5,  "
-    sql += ":6, :7, :8, :9, :10 "
-    sql += ")"
-    cursor.prepare(sql)
-    cursor.executemany(None, userlist)
-    connection.commit()
-    print("Users Updated")
-
-##########################################################################
-# Insert Update Time
-##########################################################################
-
-def update_time(connection, current_time):
-    
-    cursor = connection.cursor()
-    report = 'USERS'
-    time_updated = current_time
-                
-######
-
-    sql = """insert into OCI_UPDATE_TIME (REPORT, TIME_UPDATED)
-          values (:report, :time_updated)"""
-    cursor.execute(sql, [report, time_updated])
-
-    connection.commit()
-    cursor.close()
-    print("TIME Updated")
 
 
 
@@ -202,44 +136,6 @@ def main_process():
     print("Command Line : " + ' '.join(x for x in sys.argv[1:]))
 
     ############################################
-    # Identity extract compartments
-    ############################################
-    tenancy = None
-    try:
-        print("\nConnecting to Identity Service...")
-        identity = oci.identity.IdentityClient(config, signer=signer)
-        if cmd.proxy:
-            identity.base_client.session.proxies = {'https': cmd.proxy}
-
-        tenancy = identity.get_tenancy(config["tenancy"]).data
-        print("   Tenant Name : " + str(tenancy.name))
-        print("   Tenant Id   : " + tenancy.id)
-        print("")
-        
-        print("Getting Users")
-        l_users = identity.list_users(compartment_id=tenancy.id)
-        userlist = []
-        for i in range(len(l_users.data)):
-            user_data = (
-                l_users.data[i].compartment_id,
-                l_users.data[i].description,
-                l_users.data[i].email,
-                l_users.data[i].id,
-                l_users.data[i].identity_provider_id,
-                str(l_users.data[i].inactive_status),
-                str(l_users.data[i].is_mfa_activated),
-                l_users.data[i].lifecycle_state,
-                l_users.data[i].name,
-                l_users.data[i].time_created.isoformat()
-
-            )
-            userlist.append(user_data)
-        print("Downloaded Users")
-    except Exception as e:
-        print("\nError extracting users - " + str(e) + "\n")
-        raise SystemExit
-
-    ############################################
     # connect to database
     ############################################
     connection = None
@@ -248,26 +144,26 @@ def main_process():
         connection = cx_Oracle.connect(user=cmd.duser, password=cmd.dpass, dsn=cmd.dname, encoding="UTF-8", nencoding="UTF-8")
         cursor = connection.cursor()
         print("   Connected")
-
-        # Check tables structure
-        print("\nChecking Database Structure...")
-        check_database_table_structure_users(connection)
-    ############################################
-    # Update Users
-    ############################################
-        update_users(connection,userlist)
+        ############################################
+        # Create Update Time table
+        ############################################
+        check_database_table_structure_updatetime(connection)
         cursor.close()
+
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
 
     except Exception as e:
         raise Exception("\nError manipulating database - " + str(e))
+
+                       
+
+
     ############################################
     # print completed
     ############################################
-    print("\nCompleted at " + current_time)
-    update_time(connection, current_time)
+    print("\nCompleted at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
 ##########################################################################
