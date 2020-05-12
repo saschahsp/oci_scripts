@@ -227,7 +227,7 @@ def main_process():
 
         # Check tables structure
         print("\nChecking Database Structure...")
-        check_database_table_structure_adbs(connection)
+        check_database_table_structure_compartments(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
