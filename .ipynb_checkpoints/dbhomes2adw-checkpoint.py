@@ -275,7 +275,7 @@ def main_process():
                     print("Getting... ", dbhomes.data[i].display_name)
                     row_data = (
                         dbhomes.data[i].compartment_id,
-                        dbhomes.data[i].db_home_location,
+                        'null',#dbhomes.data[i].db_home_location,
                         dbhomes.data[i].db_system_id,
                         dbhomes.data[i].db_version,
                         dbhomes.data[i].display_name,
