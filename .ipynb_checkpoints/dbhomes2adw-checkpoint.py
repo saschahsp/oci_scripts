@@ -281,7 +281,7 @@ def main_process():
                         dbhomes.data[i].display_name,
                         dbhomes.data[i].id,
                         dbhomes.data[i].last_patch_history_entry_id,
-                        dbhomes.data[i].lifecycle_details,
+                        'null',#dbhomes.data[i].lifecycle_details,
                         dbhomes.data[i].lifecycle_state,
                         dbhomes.data[i].time_created.isoformat(),
                         dbhomes.data[i].vm_cluster_id,
