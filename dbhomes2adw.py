@@ -280,7 +280,7 @@ def main_process():
                         dbhomes.data[i].id,
                         dbhomes.data[i].last_patch_history_entry_id,
                         'null',#dbhomes.data[i].lifecycle_details,
-                        'null',#dbhomes.data[i].lifecycle_state,
+                        dbhomes.data[i].lifecycle_state,
                         dbhomes.data[i].time_created.isoformat(),
                         'null',#dbhomes.data[i].vm_cluster_id,
                         dbhomes.data[i].LIFECYCLE_STATE_AVAILABLE,
@@ -299,7 +299,7 @@ def main_process():
     ############################################
     # Update ADBs
     ############################################
-    update_adbs(connection,dbhomelist)
+    update_dbhomes(connection,dbhomelist)
     cursor.close()
 
     ############################################
