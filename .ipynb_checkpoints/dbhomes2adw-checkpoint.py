@@ -114,7 +114,6 @@ def check_database_table_structure_dbhomes(connection):
             sql += "    display_name            VARCHAR2(100),"
             sql += "    id      VARCHAR2(300),"
             sql += "    last_patch_history_entry_id    VARCHAR2(300),"
-            sql += "    PREVIEW    VARCHAR2(100),"
             sql += "    lifecycle_details              VARCHAR(30),"
             sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
             sql += "    TIME_CREATED              VARCHAR2(50),"
@@ -147,7 +146,7 @@ def check_database_table_structure_dbhomes(connection):
 # Update ADBs Function
 ##########################################################################
 
-def update_dbhomes(connection,adblist):
+def update_dbhomes(connection,dbhomelist):
     
     cursor = connection.cursor()
     sql = "delete from OCI_DBHOMES"
@@ -164,7 +163,6 @@ def update_dbhomes(connection,adblist):
     sql += "    display_name,"
     sql += "    id,"
     sql += "    last_patch_history_entry_id,"
-    sql += "    PREVIEW,"
     sql += "    lifecycle_details,"
     sql += "    LIFECYCLE_STATE,"
     sql += "    TIME_CREATED,"
@@ -178,7 +176,7 @@ def update_dbhomes(connection,adblist):
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
     sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, :12 , :13, :14, :15, :16, :17, :18"
+    sql += ":11, :12 , :13, :14, :15, :16, :17"
     sql += ") "
 
     cursor.prepare(sql)
@@ -282,9 +280,9 @@ def main_process():
                         dbhomes.data[i].id,
                         dbhomes.data[i].last_patch_history_entry_id,
                         'null',#dbhomes.data[i].lifecycle_details,
-                        dbhomes.data[i].lifecycle_state,
+                        'null',#dbhomes.data[i].lifecycle_state,
                         dbhomes.data[i].time_created.isoformat(),
-                        dbhomes.data[i].vm_cluster_id,
+                        'null',#dbhomes.data[i].vm_cluster_id,
                         dbhomes.data[i].LIFECYCLE_STATE_AVAILABLE,
                         dbhomes.data[i].LIFECYCLE_STATE_FAILED,
                         dbhomes.data[i].LIFECYCLE_STATE_PROVISIONING,
