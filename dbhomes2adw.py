@@ -99,7 +99,7 @@ def check_database_table_structure_dbhomes(connection):
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_dbhomes'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_DBHOMES'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
