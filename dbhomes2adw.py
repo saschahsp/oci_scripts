@@ -272,7 +272,7 @@ def main_process():
             dbhomes = dbclient.list_db_homes(compartment_id = l_ocid_n[a])
             if len(dbhomes.data) != 0:
                 for i in range(len(dbhomes.data)):
-
+                    print("Getting... ", dbhomes.data[i].display_name)
                     row_data = (
                         dbhomes.data[i].compartment_id,
                         dbhomes.data[i].db_home_location,
