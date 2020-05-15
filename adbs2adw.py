@@ -123,7 +123,8 @@ def check_database_table_structure_adbs(connection):
             sql += "    TIME_MAINTENANCE_BEGIN              VARCHAR2(300),"
             sql += "    TIME_MAINTENANCE_END              VARCHAR2(300),"
             sql += "    TIME_RECLAMATION_OF_FREE_ADB              VARCHAR2(300),"
-            sql += "    DEFINED_TAGS              VARCHAR2(500)"
+            sql += "    DEFINED_TAGS              VARCHAR2(500),"
+            sql += "    REGION              VARCHAR2(100)"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
@@ -172,11 +173,12 @@ def update_adbs(connection,adblist):
     sql += "TIME_MAINTENANCE_BEGIN,"
     sql += "TIME_MAINTENANCE_END,"
     sql += "TIME_RECLAMATION_OF_FREE_ADB,"
-    sql += "DEFINED_TAGS"
+    sql += "DEFINED_TAGS,"
+    sql += "REGION"
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
     sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, :12 , :13, :14, :15, :16, :17"
+    sql += ":11, :12 , :13, :14, :15, :16, :17, :18"
     sql += ") "
 
     cursor.prepare(sql)
@@ -266,32 +268,36 @@ def main_process():
         
         print("Getting ADBs")
         adblist = []
-        for a in range(len(l_ocid_n)):
-            testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
-            if len(testadb.data) != 0:
-                for i in range(len(testadb.data)):
+        for region in oci.regions.REGIONS:
+            config['region'] = region
+            print('Check for...',config['region'])
+            for a in range(len(l_ocid_n)):
+                adbclient = oci.database.DatabaseClient(config)
+                testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
+                if len(testadb.data) != 0:
+                    for i in range(len(testadb.data)):
 
-                    row_data = (
-                        testadb.data[i].autonomous_container_database_id,
-                        testadb.data[i].compartment_id,
-                        testadb.data[i].cpu_core_count,
-                        testadb.data[i].display_name,
-                        testadb.data[i].id,
-                        str(testadb.data[i].is_auto_scaling_enabled),
-                        str(testadb.data[i].is_dedicated),
-                        str(testadb.data[i].is_free_tier),
-                        str(testadb.data[i].is_preview),
-                        testadb.data[i].license_model,
-                        testadb.data[i].lifecycle_state,
-                        testadb.data[i].time_created.isoformat(),
-                        str(testadb.data[i].time_deletion_of_free_autonomous_database),
-                        testadb.data[i].time_maintenance_begin.isoformat(),
-                        testadb.data[i].time_maintenance_end.isoformat(),
-                        str(testadb.data[i].time_reclamation_of_free_autonomous_database),
-                        str(testadb.data[i].defined_tags)
-                        )
-                    adblist.append(row_data)      
-                    print("Downloaded ADB:",testadb.data[i].display_name)
+                        row_data = (
+                            testadb.data[i].autonomous_container_database_id,
+                            testadb.data[i].compartment_id,
+                            testadb.data[i].cpu_core_count,
+                            testadb.data[i].display_name,
+                            testadb.data[i].id,
+                            str(testadb.data[i].is_auto_scaling_enabled),
+                            str(testadb.data[i].is_dedicated),
+                            str(testadb.data[i].is_free_tier),
+                            str(testadb.data[i].is_preview),
+                            testadb.data[i].license_model,
+                            testadb.data[i].lifecycle_state,
+                            testadb.data[i].time_created.isoformat(),
+                            str(testadb.data[i].time_deletion_of_free_autonomous_database),
+                            testadb.data[i].time_maintenance_begin.isoformat(),
+                            testadb.data[i].time_maintenance_end.isoformat(),
+                            str(testadb.data[i].time_reclamation_of_free_autonomous_database),
+                            str(testadb.data[i].defined_tags),
+                            region
+                            )
+                        adblist.append(row_data)
     except Exception as e:
         print("\nError extracting ADBs - " + str(e) + "\n")
         raise SystemExit           
