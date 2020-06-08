@@ -116,12 +116,10 @@ def main_process():
     # Getting Emails
     ############################################
         print("Getting Emails...")
-        sql = "select EXTRACTED_EMAIL, LISTAGG(DISPLAY_NAME, ', ') from V_ADBNOTIFICATION where flag = 1 and free_tier = 'False' GROUP BY EXTRACTED_EMAIL"
+        sql = "select a.*, b.MANAGER, b.adminone, b.admintwo from V_LISTAGG_FLAGGED_ADBS a left join (select distinct EXTRACTED_EMAIL, manager, adminone, admintwo from V_SENDMAILS) b on a.EXTRACTED_EMAIL=b.EXTRACTED_EMAIL"
         cursor.execute(sql)
         l_flaggedadbs = cursor.fetchall()
-        l_flaggedadbs_n = []
-        for c in range(len(l_flaggedadbs)):
-            l_flaggedadbs_n.append(l_flaggedadbs[c][0])
+
     ############################################
     # Send Emails
     ############################################
