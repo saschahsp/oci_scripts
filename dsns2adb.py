@@ -109,7 +109,7 @@ def check_database_table_structure_ds_nbs(connection):
             sql = "create table OCI_DS_NBS ("
             sql += "    DISPLAY_NAME             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
+            sql += "    LIFECYCLE_STATE              VARCHAR2(300),"
             sql += "    ID             VARCHAR2(200),"
             sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             VARCHAR2(500),"
             sql += "    NOTEBOOKSESSION_URL             VARCHAR2(500),"
