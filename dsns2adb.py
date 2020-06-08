@@ -111,7 +111,7 @@ def check_database_table_structure_ds_nbs(connection):
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
             sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
             sql += "    ID             VARCHAR2(200),"
-            sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             VARCHAR2(200),"
+            sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             VARCHAR2(500),"
             sql += "    NOTEBOOKSESSION_URL             VARCHAR2(500),"
             sql += "    PROJECT_ID             VARCHAR2(200),"
             sql += "    TIME_CREATED              VARCHAR2(30),"
@@ -248,7 +248,7 @@ def main_process():
 
     try:
         print("\nConnecting to DS Client...")
-        datascienceclient = oci.data_science.DataScienceClient(config, signer=signer)
+        datascienceclient = oci.DataScienceClient(config, signer=signer)
         if cmd.proxy:
             datascienceclient.base_client.session.proxies = {'https': cmd.proxy}
         
@@ -277,7 +277,7 @@ def main_process():
                             notebooks.data[i].compartment_id,
                             notebooks.data[i].id,
                             notebooks.data[i].lifecycle_state,
-                            notebooks.data[i].notebook_session_configuration_details,
+                            str(notebooks.data[i].notebook_session_configuration_details),
                             notebooks.data[i].notebook_session_url,
                             notebooks.data[i].project_id,
                             notebooks.data[i].time_created.isoformat(),
