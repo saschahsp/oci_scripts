@@ -106,7 +106,7 @@ def check_database_table_structure_ds_nbs(connection):
         # if table not exist, create it
         if val == 0:
             print("Table OCI_DS_NBS was not exist, creating")
-            sql = "create table OCI_ADBS ("
+            sql = "create table OCI_DS_NBS ("
             sql += "    DISPLAY_NAME             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
             sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
