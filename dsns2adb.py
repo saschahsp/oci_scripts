@@ -91,47 +91,40 @@ def set_parser_arguments():
 
     return result
 ##########################################################################
-# def check table adbs
+# def check table ds_nbs
 ##########################################################################
-def check_database_table_structure_adbs(connection):
+def check_database_table_structure_ds_nbs(connection):
     try:
         # open cursor
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_ADBS'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_DS_NBS'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
         # if table not exist, create it
         if val == 0:
-            print("Table OCI_ADBS was not exist, creating")
+            print("Table OCI_DS_NBS was not exist, creating")
             sql = "create table OCI_ADBS ("
-            sql += "    CONTAINER_ID             VARCHAR2(200),"
+            sql += "    DISPLAY_NAME             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    OCPUS    NUMBER,"
-            sql += "    DISPLAY_NAME      VARCHAR(100),"
-            sql += "    OCID             VARCHAR2(200),"
-            sql += "    AUTO_SCALING            VARCHAR2(30),"
-            sql += "    DEDICATED      VARCHAR2(30),"
-            sql += "    FREE_TIER    VARCHAR2(30),"
-            sql += "    PREVIEW    VARCHAR2(100),"
-            sql += "    LICENSE_MODEL              VARCHAR(30),"
             sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
+            sql += "    ID             VARCHAR2(200),"
+            sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             VARCHAR2(200),"
+            sql += "    NOTEBOOKSESSION_URL             VARCHAR2(500),"
+            sql += "    PROJECT_ID             VARCHAR2(200),"
             sql += "    TIME_CREATED              VARCHAR2(30),"
-            sql += "    TIME_DELETION_OF_FREE_ADB              VARCHAR2(300),"
-            sql += "    TIME_MAINTENANCE_BEGIN              VARCHAR2(300),"
-            sql += "    TIME_MAINTENANCE_END              VARCHAR2(300),"
-            sql += "    TIME_RECLAMATION_OF_FREE_ADB              VARCHAR2(300),"
             sql += "    DEFINED_TAGS              VARCHAR2(500),"
-            sql += "    REGION              VARCHAR2(100)"
+            sql += "    FREEFORM_TAGS              VARCHAR2(500),"         
+            sql += "    OCI_REGION              VARCHAR2(100)"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
-            print("Table OCI_ADBS created")
+            print("Table OCI_DS_NBS created")
             cursor.close()
         else:
-            print("Table OCI_ADBS exist")
+            print("Table OCI_DS_NBS exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -144,48 +137,41 @@ def check_database_table_structure_adbs(connection):
 
 
 ##########################################################################
-# Update ADBs Function
+# Update DATA SCIENCE SESSION Function
 ##########################################################################
 
-def update_adbs(connection,adblist):
+def update_oci_ds_nbs(connection,notebooklist):
     
     cursor = connection.cursor()
-    sql = "delete from OCI_ADBS"
+    sql = "delete from OCI_DS_NBS"
     cursor.execute(sql)
     sql = "begin commit; end;"
     cursor.execute(sql)
-    print("ADBS Deleted")
+    print("OCI_DS_NBS Deleted")
 ######
-    sql = "INSERT INTO OCI_ADBS ("
-    sql += "CONTAINER_ID,"
-    sql += "COMPARTMENT_ID,"
-    sql += "OCPUS,"
-    sql += "DISPLAY_NAME,"
-    sql += "OCID,"
-    sql += "AUTO_SCALING,"
-    sql += "DEDICATED,"
-    sql += "FREE_TIER,"
-    sql += "PREVIEW,"
-    sql += "LICENSE_MODEL,"
-    sql += "LIFECYCLE_STATE,"
-    sql += "TIME_CREATED,"
-    sql += "TIME_DELETION_OF_FREE_ADB,"
-    sql += "TIME_MAINTENANCE_BEGIN,"
-    sql += "TIME_MAINTENANCE_END,"
-    sql += "TIME_RECLAMATION_OF_FREE_ADB,"
-    sql += "DEFINED_TAGS,"
-    sql += "REGION"
+    sql = "INSERT INTO OCI_DS_NBS ("
+    sql += "    DISPLAY_NAME             ,"
+    sql += "    COMPARTMENT_ID             ,"
+    sql += "    LIFECYCLE_STATE              ,"
+    sql += "    ID             ,"
+    sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             ,"
+    sql += "    NOTEBOOKSESSION_URL             ,"
+    sql += "    PROJECT_ID             ,"
+    sql += "    TIME_CREATED              ,"
+    sql += "    DEFINED_TAGS              ,"
+    sql += "    FREEFORM_TAGS             ,"         
+    sql += "    OCI_REGION              "
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
     sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, :12 , :13, :14, :15, :16, :17, :18"
+    sql += ":11"
     sql += ") "
 
     cursor.prepare(sql)
-    cursor.executemany(None, adblist)
+    cursor.executemany(None, notebooklist)
     connection.commit()
     cursor.close()
-    print("ADBs Updated")
+    print("DATA SCIENCE NOTEBOOKS Updated")
 
 ##########################################################################
 # Insert Update Time
@@ -194,7 +180,7 @@ def update_adbs(connection,adblist):
 def update_time(connection, current_time):
     
     cursor = connection.cursor()
-    report = 'ADBS'
+    report = 'DATASCIENCE_NOTEBOOKS'
     time_updated = current_time
                 
 ######
@@ -235,7 +221,7 @@ def main_process():
 
         # Check tables structure
         print("\nChecking Database Structure...")
-        check_database_table_structure_adbs(connection)
+        check_database_table_structure_ds_nbs(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
@@ -261,43 +247,47 @@ def main_process():
     ############################################
 
     try:
-        print("\nConnecting to ADB Client...")
-        adbclient = oci.database.DatabaseClient(config, signer=signer)
+        print("\nConnecting to DS Client...")
+        datascienceclient = oci.data_science.DataScienceClient(config, signer=signer)
         if cmd.proxy:
-            adbclient.base_client.session.proxies = {'https': cmd.proxy}
+            datascienceclient.base_client.session.proxies = {'https': cmd.proxy}
         
-        print("Getting ADBs")
-        adblist = []
-        for region in oci.regions.REGIONS:
+        print("Getting Data Science Notebooks")
+        notebooklist = []
+        for region in [#'ap-sydney-1',
+        'ap-tokyo-1',
+        'us-phoenix-1',
+        'us-ashburn-1',
+        'eu-frankfurt-1',
+        'uk-london-1',
+        'eu-amsterdam-1',
+        #'ca-toronto-1',
+        #'sa-saopaulo-1'
+        ]:
             config['region'] = region
-            adbclient = oci.database.DatabaseClient(config)
+            datascienceclient = oci.data_science.DataScienceClient(config, signer=signer)
             print('Check for...',config['region'])
             for a in range(len(l_ocid_n)):
-                testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
-                if len(testadb.data) != 0:
-                    for i in range(len(testadb.data)):
+                notebooks = datascienceclient.list_notebook_sessions(compartment_id = l_ocid_n[a])
+                if len(notebooks.data) != 0:
+                    for i in range(len(notebooks.data)):
 
                         row_data = (
-                            testadb.data[i].autonomous_container_database_id,
-                            testadb.data[i].compartment_id,
-                            testadb.data[i].cpu_core_count,
-                            testadb.data[i].display_name,
-                            testadb.data[i].id,
-                            str(testadb.data[i].is_auto_scaling_enabled),
-                            str(testadb.data[i].is_dedicated),
-                            str(testadb.data[i].is_free_tier),
-                            str(testadb.data[i].is_preview),
-                            testadb.data[i].license_model,
-                            testadb.data[i].lifecycle_state,
-                            testadb.data[i].time_created.isoformat(),
-                            str(testadb.data[i].time_deletion_of_free_autonomous_database),
-                            testadb.data[i].time_maintenance_begin.isoformat(),
-                            testadb.data[i].time_maintenance_end.isoformat(),
-                            str(testadb.data[i].time_reclamation_of_free_autonomous_database),
-                            str(testadb.data[i].defined_tags),
+                            notebooks.data[i].display_name,
+                            notebooks.data[i].compartment_id,
+                            notebooks.data[i].id,
+                            notebooks.data[i].lifecycle_state,
+                            notebooks.data[i].notebook_session_configuration_details,
+                            notebooks.data[i].notebook_session_url,
+                            notebooks.data[i].project_id,
+                            notebooks.data[i].time_created.isoformat(),
+                            str(notebooks.data[i].defined_tags),
+                            str(notebooks.data[i].freeform_tags),
                             region
-                            )
-                        adblist.append(row_data)
+                            
+                        )
+                        print('Listed...', notebooks.data[i].display_name)
+                        notebooklist.append(row_data)
     except Exception as e:
         print("\nError extracting ADBs - " + str(e) + "\n")
         raise SystemExit           
@@ -305,7 +295,7 @@ def main_process():
     ############################################
     # Update ADBs
     ############################################
-    update_adbs(connection,adblist)
+    update_oci_ds_nbs(connection,notebooklist)
     cursor.close()
 
     ############################################
