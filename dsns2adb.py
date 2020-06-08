@@ -248,7 +248,7 @@ def main_process():
 
     try:
         print("\nConnecting to DS Client...")
-        datascienceclient = oci.DataScienceClient(config, signer=signer)
+        datascienceclient = oci.data_science.DataScienceClient(config, signer=signer)
         if cmd.proxy:
             datascienceclient.base_client.session.proxies = {'https': cmd.proxy}
         
