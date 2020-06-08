@@ -126,11 +126,20 @@ def main_process():
     # Send Emails
     ############################################
         print("Sending Emails...")
-        for i in range(len(l_flaggedadbs)):     
-            cursor.callproc('adb_mails', 
-                            [l_flaggedadbs[i][0],
-                             'Private ADB', 
-                             'Hello ' + str(l_flaggedadbs[i][0].split('.')[0].title()) + ',\n\nYour private compartment has been flagged, because you still have an existing ADB. Please delete your ADBs and use the SharedADBs in the SharedPaas compartment. If your ADBs are absolutely needed, please talk to your regional admin or manager and make sure that no tag with AutoStopStart.AutoStopping: NO exists so that the autostop script applies. \n\nADBs: '+ str(l_flaggedadbs[i][1]) + '\n\n Sincerly, the admins.'])
+        for i in range(len(l_flaggedadbs)):
+            tmp_amdin_l = []
+            tmp_amdin_l  = [i for i in [l_flaggedadbs[i][3],l_flaggedadbs[i][4]] if i] 
+            bcss = tmp_amdin_l + ['sascha.hagedorn@oracle.com', 'leopold.gault@oracle.com', 'sinan.petrus.toma@oracle.com', 'mikko.puhakka@oracle.com']
+            bccs = ', '.join(list(set(bcss)))
+            cursor.callproc('SEND_ADB_MAIL',
+                            ['apex_mail@oracle.com',
+                            l_flaggedadbs[i][0],
+                            'Private ADB',
+                            str(l_flaggedadbs[i][0].split('.')[0].title()),
+                            str(l_flaggedadbs[i][1]),
+                            bccs
+                            ])
+            print("Pushed Email to ",str(l_flaggedadbs[i][0].split('.')[0].title()),' (Email:',l_flaggedadbs[i][0],') regarding ', str(l_flaggedadbs[i][1]),' to ', bccs)
         cursor.callproc('pushed')
         cursor.close()
     except cx_Oracle.DatabaseError as e:
