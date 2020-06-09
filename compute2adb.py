@@ -154,7 +154,7 @@ def check_database_table_structure_compute(connection):
 ##########################################################################
 
 def update_oci_compute(connection,computelist):
-    
+    #update
     cursor = connection.cursor()
     sql = "delete from OCI_COMPUTE"
     cursor.execute(sql)
