@@ -290,7 +290,7 @@ def main_process():
         ]:#oci.regions.REGIONS:
             config['region'] = region
             computeclient = oci.core.ComputeClient(config, signer=signer)
-            time.sleep(60)
+            #time.sleep(60)
             print('Check for...',config['region'])
             for a in range(len(l_ocid_n)):       
                 instances = computeclient.list_instances(compartment_id = l_ocid_n[a])
