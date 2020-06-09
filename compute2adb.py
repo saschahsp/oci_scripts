@@ -298,7 +298,7 @@ def main_process():
                     for i in range(len(instances.data)):
 
                         row_data = (
-                            instances.data[i].agent_config,
+                            str(instances.data[i].agent_config),
                             instances.data[i].availability_domain,
                             instances.data[i].compartment_id,
                             instances.data[i].dedicated_vm_host_id,
