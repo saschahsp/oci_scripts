@@ -152,7 +152,7 @@ def check_database_table_structure_compute(connection):
 # Update DATA SCIENCE SESSION Function
 ##########################################################################
 
-def update_oci_compute(connection,computelist):
+def update_oci_compute(connection, computelist):
     #update
     cursor = connection.cursor()
     sql = "delete from OCI_COMPUTE"
