@@ -93,38 +93,50 @@ def set_parser_arguments():
 ##########################################################################
 # def check table ds_nbs
 ##########################################################################
-def check_database_table_structure_ds_nbs(connection):
+def check_database_table_structure_compute(connection):
     try:
         # open cursor
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_DS_NBS'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_COMPUTE'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
         # if table not exist, create it
         if val == 0:
-            print("Table OCI_DS_NBS was not exist, creating")
-            sql = "create table OCI_DS_NBS ("
-            sql += "    DISPLAY_NAME             VARCHAR2(200),"
+            print("Table OCI_COMPUTE was not exist, creating")
+            sql = "create table OCI_COMPUTE ("
+            sql += "    AGENT_CONFIG             VARCHAR2(200),"
+            sql += "    AVAILABILITY_DOMAIN             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    ID             VARCHAR2(200),"
-            sql += "    LIFECYCLE_STATE              VARCHAR2(300),"
-            sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             VARCHAR2(500),"
-            sql += "    NOTEBOOKSESSION_URL             VARCHAR2(500),"
-            sql += "    PROJECT_ID             VARCHAR2(200),"
-            sql += "    TIME_CREATED              VARCHAR2(100),"
+            sql += "    DEDICATED_VM_HOST_ID             VARCHAR2(200),"
             sql += "    DEFINED_TAGS              VARCHAR2(500),"
-            sql += "    FREEFORM_TAGS              VARCHAR2(500),"         
+            sql += "    DISPLAY_NAME             VARCHAR2(200),"
+            sql += "    EXTENDED_METADATA             VARCHAR2(200),"
+            sql += "    FAULT_DOMAIN             VARCHAR2(200),"
+            sql += "    FREEFORM_TAGS              VARCHAR2(500),"
+            sql += "    ID             VARCHAR2(200),"
+            sql += "    IMAGE_ID             VARCHAR2(200),"
+            sql += "    IPXE_SCRIPT             VARCHAR2(200),"
+            sql += "    LAUNCH_MODE             VARCHAR2(200),"
+            sql += "    LIFECYCLE_STATE             VARCHAR2(200),"
+            sql += "    METADATA             VARCHAR2(200),"
+            sql += "    REGION             VARCHAR2(200),"
+            sql += "    SHAPE             VARCHAR2(200),"
+            sql += "    SHAPE_CONFIG             VARCHAR2(200),"
+            sql += "    SOURCE_DETAILS             VARCHAR2(200),"
+            sql += "    SYSTEM_TAGS             VARCHAR2(200),"
+            sql += "    TIME_CREATED             VARCHAR2(200),"
+            sql += "    TIME_MAINTENANCE_REBOOT_DUE             VARCHAR2(200),"
             sql += "    OCI_REGION              VARCHAR2(100)"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
-            print("Table OCI_DS_NBS created")
+            print("Table OCI_COMPUTE created")
             cursor.close()
         else:
-            print("Table OCI_DS_NBS exist")
+            print("Table OCI_COMPUTE exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -140,38 +152,50 @@ def check_database_table_structure_ds_nbs(connection):
 # Update DATA SCIENCE SESSION Function
 ##########################################################################
 
-def update_oci_ds_nbs(connection,notebooklist):
+def update_oci_compute(connection,computelist):
     
-    cursor = connection.cursor()
-    sql = "delete from OCI_DS_NBS"
-    cursor.execute(sql)
-    sql = "begin commit; end;"
-    cursor.execute(sql)
-    print("OCI_DS_NBS Deleted")
+    #cursor = connection.cursor()
+    #sql = "delete from OCI_COMPUTE"
+    #cursor.execute(sql)
+    #sql = "begin commit; end;"
+    #cursor.execute(sql)
+    #print("OCI_COMPUTE Deleted")
 ######
-    sql = "INSERT INTO OCI_DS_NBS ("
-    sql += "    DISPLAY_NAME             ,"
+    sql = "INSERT INTO OCI_COMPUTE ("
+    sql += "    AGENT_CONFIG             ,"
+    sql += "    AVAILABILITY_DOMAIN             ,"
     sql += "    COMPARTMENT_ID             ,"
-    sql += "    ID             ,"
-    sql += "    LIFECYCLE_STATE              ,"
-    sql += "    NOTEBOOKSESSION_CONFIG_DETAILS             ,"
-    sql += "    NOTEBOOKSESSION_URL             ,"
-    sql += "    PROJECT_ID             ,"
-    sql += "    TIME_CREATED              ,"
+    sql += "    DEDICATED_VM_HOST_ID            ,"
     sql += "    DEFINED_TAGS              ,"
-    sql += "    FREEFORM_TAGS             ,"         
-    sql += "    OCI_REGION              "
+    sql += "    DISPLAY_NAME             ,"
+    sql += "    EXTENDED_METADATA             ,"
+    sql += "    FAULT_DOMAIN             ,"
+    sql += "    FREEFORM_TAGS              ,"
+    sql += "    ID           ,"
+    sql += "    IMAGE_ID             ,"
+    sql += "    IPXE_SCRIPT            ,"
+    sql += "    LAUNCH_MODE            ,"
+    sql += "    LIFECYCLE_STATE             ,"
+    sql += "    METADATA             ,"
+    sql += "    REGION             ,"
+    sql += "    SHAPE             ,"
+    sql += "    SHAPE_CONFIG             ,"
+    sql += "    SOURCE_DETAILS             ,"
+    sql += "    SYSTEM_TAGS             ,"
+    sql += "    TIME_CREATED             ,"
+    sql += "    TIME_MAINTENANCE_REBOOT_DUE             ,"
+    sql += "    OCI_REGION             "
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
     sql += ":6, :7, :8, :9, :10, "
-    sql += ":11"
+    sql += ":11, 12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23"
     sql += ") "
 
     cursor.prepare(sql)
-    cursor.executemany(None, notebooklist)
+    cursor.executemany(None, computelist)
     connection.commit()
     cursor.close()
-    print("DATA SCIENCE NOTEBOOKS Updated")
+    print("COMPUTE Updated")
 
 ##########################################################################
 # Insert Update Time
@@ -180,7 +204,7 @@ def update_oci_ds_nbs(connection,notebooklist):
 def update_time(connection, current_time):
     
     cursor = connection.cursor()
-    report = 'DATASCIENCE_NOTEBOOKS'
+    report = 'COMPUTE'
     time_updated = current_time
                 
 ######
@@ -221,7 +245,7 @@ def main_process():
 
         # Check tables structure
         print("\nChecking Database Structure...")
-        check_database_table_structure_ds_nbs(connection)
+        check_database_table_structure_compute(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
@@ -247,55 +271,69 @@ def main_process():
     ############################################
 
     try:
-        print("\nConnecting to DS Client...")
-        datascienceclient = oci.data_science.DataScienceClient(config, signer=signer)
+        print("\nConnecting to Compute Client...")
+        computeclient = oci.core.ComputeClient(config, signer=signer)
         if cmd.proxy:
             datascienceclient.base_client.session.proxies = {'https': cmd.proxy}
         
-        print("Getting Data Science Notebooks")
-        notebooklist = []
+        print("Getting Compute Instances")
+        computelist = []
         for region in [#'ap-sydney-1',
         #'ap-tokyo-1',
-        'us-phoenix-1',
-        'us-ashburn-1',
-        'eu-frankfurt-1',
-        'uk-london-1',
+        #'us-phoenix-1',
+        #'us-ashburn-1',
+        #'eu-frankfurt-1',
+        #'uk-london-1',
         'eu-amsterdam-1',
         #'ca-toronto-1',
         #'sa-saopaulo-1'
-        ]:
+        ]:#oci.regions.REGIONS:
             config['region'] = region
-            datascienceclient = oci.data_science.DataScienceClient(config, signer=signer)
+            computeclient = oci.core.ComputeClient(config, signer=signer)
+            time.sleep(60)
             print('Check for...',config['region'])
-            for a in range(len(l_ocid_n)):
-                notebooks = datascienceclient.list_notebook_sessions(compartment_id = l_ocid_n[a])
-                if len(notebooks.data) != 0:
-                    for i in range(len(notebooks.data)):
+            for a in range(len(l_ocid_n)):       
+                instances = computeclient.list_instances(compartment_id = l_ocid_n[a])
+                if len(instances.data) != 0:
+                    for i in range(len(instances.data)):
 
                         row_data = (
-                            notebooks.data[i].display_name,
-                            notebooks.data[i].compartment_id,
-                            notebooks.data[i].id,
-                            notebooks.data[i].lifecycle_state,
-                            str(notebooks.data[i].notebook_session_configuration_details),
-                            notebooks.data[i].notebook_session_url,
-                            notebooks.data[i].project_id,
-                            notebooks.data[i].time_created.isoformat(),
-                            str(notebooks.data[i].defined_tags),
-                            str(notebooks.data[i].freeform_tags),
+                            instances.data[i].agent_config,
+                            instances.data[i].availability_domain,
+                            instances.data[i].compartment_id,
+                            instances.data[i].dedicated_vm_host_id,
+                            str(instances.data[i].defined_tags),
+                            instances.data[i].display_name,
+                            instances.data[i].extended_metadata,
+                            instances.data[i].fault_domain,
+                            str(instances.data[i].freeform_tags),
+                            instances.data[i].id,
+                            instances.data[i].image_id,
+                            instances.data[i].ipxe_script,
+                            instances.data[i].launch_mode,
+                            instances.data[i].launch_options,
+                            instances.data[i].lifecycle_state,
+                            instances.data[i].metadata,
+                            instances.data[i].region,
+                            instances.data[i].shape,
+                            'null',#instances.data[i].shape_config,
+                            instances.data[i].source_details,
+                            str(instances.data[i].system_tags),
+                            instances.data[i].time_created.isoformat(),
+                            'null',#instances.data[i].time_maintenance_reboot_due,
                             region
-                            
+            
                         )
-                        print('Listed...', notebooks.data[i].display_name)
-                        notebooklist.append(row_data)
+                        print('\tListed...', instances.data[i].display_name)
+                        computelist.append(row_data)
     except Exception as e:
-        print("\nError extracting ADBs - " + str(e) + "\n")
+        print("\nError extracting Compute - " + str(e) + "\n")
         raise SystemExit           
                         
     ############################################
     # Update ADBs
     ############################################
-    update_oci_ds_nbs(connection,notebooklist)
+    update_oci_compute(connection,computelist)
     cursor.close()
 
     ############################################

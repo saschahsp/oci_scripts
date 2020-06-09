@@ -268,7 +268,16 @@ def main_process():
         
         print("Getting ADBs")
         adblist = []
-        for region in oci.regions.REGIONS:
+        for region in [#'ap-sydney-1',
+        #'ap-tokyo-1',
+        'us-phoenix-1',
+        'us-ashburn-1',
+        'eu-frankfurt-1',
+        'uk-london-1',
+        #'ca-toronto-1',
+        'eu-amsterdam-1'
+        #'sa-saopaulo-1'
+        ]:
             config['region'] = region
             adbclient = oci.database.DatabaseClient(config)
             print('Check for...',config['region'])

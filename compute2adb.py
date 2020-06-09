@@ -279,17 +279,18 @@ def main_process():
         print("Getting Compute Instances")
         computelist = []
         for region in [#'ap-sydney-1',
-        'ap-tokyo-1',
-        'us-phoenix-1',
-        'us-ashburn-1',
+        #'ap-tokyo-1',
+        #'us-phoenix-1',
+        #'us-ashburn-1',
         'eu-frankfurt-1',
         'uk-london-1',
-        'eu-amsterdam-1',
+        #'eu-amsterdam-1',
         #'ca-toronto-1',
         #'sa-saopaulo-1'
         ]:#oci.regions.REGIONS:
             config['region'] = region
             computeclient = oci.core.ComputeClient(config, signer=signer)
+            time.sleep(60)
             print('Check for...',config['region'])
             for a in range(len(l_ocid_n)):       
                 instances = computeclient.list_instances(compartment_id = l_ocid_n[a])
@@ -319,7 +320,7 @@ def main_process():
                             instances.data[i].source_details,
                             str(instances.data[i].system_tags),
                             instances.data[i].time_created.isoformat(),
-                            'null'#instances.data[i].time_maintenance_reboot_due,
+                            'null',#instances.data[i].time_maintenance_reboot_due,
                             region
             
                         )
