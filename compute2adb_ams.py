@@ -309,7 +309,7 @@ def main_process():
                             str(instances.data[i].freeform_tags),
                             instances.data[i].id,
                             instances.data[i].image_id,
-                            instances.data[i].ipxe_script,
+                            'null',#str(instances.data[i].ipxe_script),
                             instances.data[i].launch_mode,
                             instances.data[i].launch_options,
                             instances.data[i].lifecycle_state,
@@ -333,6 +333,7 @@ def main_process():
     ############################################
     # Update ADBs
     ############################################
+    print(str(type(computelist)))
     update_oci_compute(connection,computelist)
     cursor.close()
 
