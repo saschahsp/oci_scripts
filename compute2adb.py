@@ -107,7 +107,7 @@ def check_database_table_structure_compute(connection):
         if val == 0:
             print("Table OCI_COMPUTE was not exist, creating")
             sql = "create table OCI_COMPUTE ("
-            sql += "    AGENT_CONFIG             VARCHAR2(200),"
+            sql += "    AGENTCONFIG             VARCHAR2(200),"
             sql += "    AVAILABILITY_DOMAIN             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
             sql += "    DEDICATED_VM_HOST_ID             VARCHAR2(200),"
@@ -163,7 +163,7 @@ def update_oci_compute(connection,computelist):
     print("OCI_COMPUTE Deleted")
 ######
     sql = "INSERT INTO OCI_COMPUTE ("
-    sql += "    AGENT_CONFIG             ,"
+    sql += "    AGENTCONFIG             ,"
     sql += "    AVAILABILITY_DOMAIN             ,"
     sql += "    COMPARTMENT_ID             ,"
     sql += "    DEDICATED_VM_HOST_ID            ,"
@@ -300,7 +300,7 @@ def main_process():
                     for i in range(len(instances.data)):
 
                         row_data = (
-                            str(instances.data[i].agent_config),
+                            'null',#str(instances.data[i].agent_config),
                             instances.data[i].availability_domain,
                             instances.data[i].compartment_id,
                             instances.data[i].dedicated_vm_host_id,
