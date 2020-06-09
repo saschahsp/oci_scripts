@@ -107,20 +107,19 @@ def check_database_table_structure_compute(connection):
         if val == 0:
             print("Table OCI_COMPUTE was not exist, creating")
             sql = "create table OCI_COMPUTE ("
-            sql += "    AGENT_CONFIG             VARCHAR2(200),"
             sql += "    AVAILABILITY_DOMAIN             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
             sql += "    DEDICATED_VM_HOST_ID             VARCHAR2(200),"
             sql += "    DEFINED_TAGS              VARCHAR2(500),"
             sql += "    DISPLAY_NAME             VARCHAR2(200),"
-            sql += "    EXTENDED_METADATA             VARCHAR2(200),"
+            sql += "    EXTENDED_METADATA             VARCHAR2(500),"
             sql += "    FAULT_DOMAIN             VARCHAR2(200),"
             sql += "    FREEFORM_TAGS              VARCHAR2(500),"
             sql += "    ID             VARCHAR2(200),"
             sql += "    IMAGE_ID             VARCHAR2(200),"
             sql += "    IPXE_SCRIPT             VARCHAR2(200),"
             sql += "    LAUNCH_MODE             VARCHAR2(200),"
-            sql += "    LAUNCH_MODE_OPTIONS            VARCHAR2(200),"
+            sql += "    LAUNCH_MODE_OPTIONS             VARCHAR2(200),"
             sql += "    LIFECYCLE_STATE             VARCHAR2(200),"
             sql += "    METADATA             VARCHAR2(200),"
             sql += "    REGION             VARCHAR2(200),"
@@ -154,7 +153,7 @@ def check_database_table_structure_compute(connection):
 ##########################################################################
 
 def update_oci_compute(connection,computelist):
-    
+    #update
     #cursor = connection.cursor()
     #sql = "delete from OCI_COMPUTE"
     #cursor.execute(sql)
@@ -163,17 +162,16 @@ def update_oci_compute(connection,computelist):
     #print("OCI_COMPUTE Deleted")
 ######
     sql = "INSERT INTO OCI_COMPUTE ("
-    sql += "    AGENT_CONFIG            ,"
     sql += "    AVAILABILITY_DOMAIN            ,"
     sql += "    COMPARTMENT_ID            ,"
     sql += "    DEDICATED_VM_HOST_ID            ,"
-    sql += "    DEFINED_TAGS              ,"
+    sql += "    DEFINED_TAGS            ,  "
     sql += "    DISPLAY_NAME             ,"
     sql += "    EXTENDED_METADATA             ,"
     sql += "    FAULT_DOMAIN             ,"
     sql += "    FREEFORM_TAGS              ,"
     sql += "    ID             ,"
-    sql += "    IMAGE_ID            ,"
+    sql += "    IMAGE_ID           , "
     sql += "    IPXE_SCRIPT             ,"
     sql += "    LAUNCH_MODE             ,"
     sql += "    LAUNCH_MODE_OPTIONS           ,"
@@ -188,15 +186,15 @@ def update_oci_compute(connection,computelist):
     sql += "    TIME_MAINTENANCE_REBOOT_DUE             ,"
     sql += "    OCI_REGION              "
     sql += ") VALUES ("
-    sql += ":1, :2, :3, :4, :5,  "
-    sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, 12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24"
+    sql += " :1, :2, :3, :4, :5,"
+    sql += ":6, :7, :8, :9, :10 ,"
+    sql += ":11, :12, :13, :14, :15, :16, :17, :18, :19 , :20, :21, :22, :23"
     sql += ") "
-
+    
     cursor.prepare(sql)
     cursor.executemany(None, computelist)
     connection.commit()
-    cursor.close()
+
     print("COMPUTE Updated")
 
 ##########################################################################
@@ -286,7 +284,7 @@ def main_process():
         #'us-ashburn-1',
         #'eu-frankfurt-1',
         #'uk-london-1',
-        'eu-amsterdam-1',
+        'eu-amsterdam-1'
         #'ca-toronto-1',
         #'sa-saopaulo-1'
         ]:#oci.regions.REGIONS:
@@ -300,31 +298,30 @@ def main_process():
                     for i in range(len(instances.data)):
 
                         row_data = (
-                            str(instances.data[i].agent_config),
                             instances.data[i].availability_domain,
                             instances.data[i].compartment_id,
                             instances.data[i].dedicated_vm_host_id,
                             str(instances.data[i].defined_tags),
                             instances.data[i].display_name,
-                            instances.data[i].extended_metadata,
+                            str(instances.data[i].extended_metadata),
                             instances.data[i].fault_domain,
                             str(instances.data[i].freeform_tags),
                             instances.data[i].id,
                             instances.data[i].image_id,
-                            'null',#str(instances.data[i].ipxe_script),
+                            'null',#instances.data[i].ipxe_script,
                             instances.data[i].launch_mode,
-                            instances.data[i].launch_options,
+                            'null',#str(instances.data[i].launch_options),
                             instances.data[i].lifecycle_state,
-                            instances.data[i].metadata,
+                            'null',#instances.data[i].metadata,
                             instances.data[i].region,
-                            instances.data[i].shape,
+                            str(instances.data[i].shape),
                             'null',#instances.data[i].shape_config,
-                            instances.data[i].source_details,
+                            'null',#str(instances.data[i].source_details),
                             str(instances.data[i].system_tags),
                             instances.data[i].time_created.isoformat(),
                             'null',#instances.data[i].time_maintenance_reboot_due,
                             region
-            
+
                         )
                         print('\tListed...', instances.data[i].display_name)
                         computelist.append(row_data)
@@ -335,7 +332,6 @@ def main_process():
     ############################################
     # Update ADBs
     ############################################
-    print(str(type(computelist)))
     update_oci_compute(connection,computelist)
     cursor.close()
 
