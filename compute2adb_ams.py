@@ -341,7 +341,7 @@ def main_process():
     # print completed
     ############################################
     print("\nCompleted at " + current_time)
-    update_time(connection, current_time)
+    #update_time(connection, current_time)
     
 ##########################################################################
 # Execute Main Process
