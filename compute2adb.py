@@ -107,7 +107,6 @@ def check_database_table_structure_compute(connection):
         if val == 0:
             print("Table OCI_COMPUTE was not exist, creating")
             sql = "create table OCI_COMPUTE ("
-#            sql += "    AGENTCONFIG             VARCHAR2(200),"
             sql += "    AVAILABILITY_DOMAIN             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
             sql += "    DEDICATED_VM_HOST_ID             VARCHAR2(200),"
