@@ -120,6 +120,7 @@ def check_database_table_structure_compute(connection):
             sql += "    IMAGE_ID             VARCHAR2(200),"
             sql += "    IPXE_SCRIPT             VARCHAR2(200),"
             sql += "    LAUNCH_MODE             VARCHAR2(200),"
+            sql += "    LAUNCH_MODE_OPTIONS            VARCHAR2(200),"
             sql += "    LIFECYCLE_STATE             VARCHAR2(200),"
             sql += "    METADATA             VARCHAR2(200),"
             sql += "    REGION             VARCHAR2(200),"
@@ -175,6 +176,7 @@ def update_oci_compute(connection,computelist):
     sql += "    IMAGE_ID             ,"
     sql += "    IPXE_SCRIPT            ,"
     sql += "    LAUNCH_MODE            ,"
+    sql += "    LAUNCH_MODE_OPTIONS            ,"
     sql += "    LIFECYCLE_STATE             ,"
     sql += "    METADATA             ,"
     sql += "    REGION             ,"
@@ -188,7 +190,7 @@ def update_oci_compute(connection,computelist):
     sql += ") VALUES ("
     sql += ":1, :2, :3, :4, :5,  "
     sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, 12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23"
+    sql += ":11, 12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24"
     sql += ") "
 
     cursor.prepare(sql)
