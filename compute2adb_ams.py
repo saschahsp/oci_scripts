@@ -294,6 +294,8 @@ def main_process():
             print('Check for...',config['region'])
             for a in range(len(l_ocid_n)):       
                 instances = computeclient.list_instances(compartment_id = l_ocid_n[a])
+                if a in [10,20,30,40,50,60,70]:
+                    time.sleep(60)
                 if len(instances.data) != 0:
                     for i in range(len(instances.data)):
 
