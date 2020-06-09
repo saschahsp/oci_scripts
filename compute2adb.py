@@ -113,7 +113,7 @@ def check_database_table_structure_compute(connection):
             sql += "    DEDICATED_VM_HOST_ID             VARCHAR2(200),"
             sql += "    DEFINED_TAGS              VARCHAR2(500),"
             sql += "    DISPLAY_NAME             VARCHAR2(200),"
-            sql += "    EXTENDED_METADATA             VARCHAR2(200),"
+            sql += "    EXTENDED_METADATA             VARCHAR2(500),"
             sql += "    FAULT_DOMAIN             VARCHAR2(200),"
             sql += "    FREEFORM_TAGS              VARCHAR2(500),"
             sql += "    ID             VARCHAR2(200),"
@@ -163,22 +163,21 @@ def update_oci_compute(connection,computelist):
     print("OCI_COMPUTE Deleted")
 ######
     sql = "INSERT INTO OCI_COMPUTE ("
-#    sql += "    AGENTCONFIG             ,"
-    sql += "    AVAILABILITY_DOMAIN             ,"
-    sql += "    COMPARTMENT_ID             ,"
+    sql += "    AVAILABILITY_DOMAIN            ,"
+    sql += "    COMPARTMENT_ID            ,"
     sql += "    DEDICATED_VM_HOST_ID            ,"
-    sql += "    DEFINED_TAGS              ,"
+    sql += "    DEFINED_TAGS            ,  "
     sql += "    DISPLAY_NAME             ,"
     sql += "    EXTENDED_METADATA             ,"
     sql += "    FAULT_DOMAIN             ,"
     sql += "    FREEFORM_TAGS              ,"
-    sql += "    ID           ,"
-    sql += "    IMAGE_ID             ,"
-    sql += "    IPXE_SCRIPT            ,"
-    sql += "    LAUNCH_MODE            ,"
-    sql += "    LAUNCH_MODE_OPTIONS            ,"
-    sql += "    LIFECYCLE_STATE             ,"
-    sql += "    METADATA             ,"
+    sql += "    ID             ,"
+    sql += "    IMAGE_ID           , "
+    sql += "    IPXE_SCRIPT             ,"
+    sql += "    LAUNCH_MODE             ,"
+    sql += "    LAUNCH_MODE_OPTIONS           ,"
+    sql += "    LIFECYCLE_STATE            ,"
+    sql += "    METADATA            ,"
     sql += "    REGION             ,"
     sql += "    SHAPE             ,"
     sql += "    SHAPE_CONFIG             ,"
@@ -186,17 +185,17 @@ def update_oci_compute(connection,computelist):
     sql += "    SYSTEM_TAGS             ,"
     sql += "    TIME_CREATED             ,"
     sql += "    TIME_MAINTENANCE_REBOOT_DUE             ,"
-    sql += "    OCI_REGION             "
+    sql += "    OCI_REGION              "
     sql += ") VALUES ("
-    sql += ":1, :2, :3, :4, :5,  "
-    sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, 12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23"
+    sql += " :1, :2, :3, :4, :5,"
+    sql += ":6, :7, :8, :9, :10 ,"
+    sql += ":11, :12, :13, :14, :15, :16, :17, :18, :19 , :20, :21, :22, :23"
     sql += ") "
-
+    
     cursor.prepare(sql)
     cursor.executemany(None, computelist)
     connection.commit()
-    cursor.close()
+
     print("COMPUTE Updated")
 
 ##########################################################################
@@ -299,32 +298,32 @@ def main_process():
                 if len(instances.data) != 0:
                     for i in range(len(instances.data)):
 
-                        row_data = (
-                            instances.data[i].availability_domain,
-                            instances.data[i].compartment_id,
-                            instances.data[i].dedicated_vm_host_id,
-                            str(instances.data[i].defined_tags),
-                            instances.data[i].display_name,
-                            str(instances.data[i].extended_metadata),
-                            instances.data[i].fault_domain,
-                            str(instances.data[i].freeform_tags),
-                            instances.data[i].id,
-                            instances.data[i].image_id,
-                            'null',#instances.data[i].ipxe_script,
-                            instances.data[i].launch_mode,
-                            str(instances.data[i].launch_options),
-                            instances.data[i].lifecycle_state,
-                            'null',#instances.data[i].metadata,
-                            instances.data[i].region,
-                            str(instances.data[i].shape),
-                            'null',#instances.data[i].shape_config,
-                            str(instances.data[i].source_details),
-                            str(instances.data[i].system_tags),
-                            instances.data[i].time_created.isoformat(),
-                            'null',#instances.data[i].time_maintenance_reboot_due,
-                            region
-            
-                        )
+                    row_data = (
+                        instances.data[i].availability_domain,
+                        instances.data[i].compartment_id,
+                        instances.data[i].dedicated_vm_host_id,
+                        str(instances.data[i].defined_tags),
+                        instances.data[i].display_name,
+                        str(instances.data[i].extended_metadata),
+                        instances.data[i].fault_domain,
+                        str(instances.data[i].freeform_tags),
+                        instances.data[i].id,
+                        instances.data[i].image_id,
+                        'null',#instances.data[i].ipxe_script,
+                        instances.data[i].launch_mode,
+                        'null',#str(instances.data[i].launch_options),
+                        instances.data[i].lifecycle_state,
+                        'null',#instances.data[i].metadata,
+                        instances.data[i].region,
+                        str(instances.data[i].shape),
+                        'null',#instances.data[i].shape_config,
+                        'null',#str(instances.data[i].source_details),
+                        str(instances.data[i].system_tags),
+                        instances.data[i].time_created.isoformat(),
+                        'null',#instances.data[i].time_maintenance_reboot_due,
+                        region
+
+                    )
                         print('\tListed...', instances.data[i].display_name)
                         computelist.append(row_data)
     except Exception as e:
