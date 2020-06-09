@@ -297,32 +297,32 @@ def main_process():
                 if len(instances.data) != 0:
                     for i in range(len(instances.data)):
 
-                    row_data = (
-                        instances.data[i].availability_domain,
-                        instances.data[i].compartment_id,
-                        instances.data[i].dedicated_vm_host_id,
-                        str(instances.data[i].defined_tags),
-                        instances.data[i].display_name,
-                        str(instances.data[i].extended_metadata),
-                        instances.data[i].fault_domain,
-                        str(instances.data[i].freeform_tags),
-                        instances.data[i].id,
-                        instances.data[i].image_id,
-                        'null',#instances.data[i].ipxe_script,
-                        instances.data[i].launch_mode,
-                        'null',#str(instances.data[i].launch_options),
-                        instances.data[i].lifecycle_state,
-                        'null',#instances.data[i].metadata,
-                        instances.data[i].region,
-                        str(instances.data[i].shape),
-                        'null',#instances.data[i].shape_config,
-                        'null',#str(instances.data[i].source_details),
-                        str(instances.data[i].system_tags),
-                        instances.data[i].time_created.isoformat(),
-                        'null',#instances.data[i].time_maintenance_reboot_due,
-                        region
+                        row_data = (
+                            instances.data[i].availability_domain,
+                            instances.data[i].compartment_id,
+                            instances.data[i].dedicated_vm_host_id,
+                            str(instances.data[i].defined_tags),
+                            instances.data[i].display_name,
+                            str(instances.data[i].extended_metadata),
+                            instances.data[i].fault_domain,
+                            str(instances.data[i].freeform_tags),
+                            instances.data[i].id,
+                            instances.data[i].image_id,
+                            'null',#instances.data[i].ipxe_script,
+                            instances.data[i].launch_mode,
+                            'null',#str(instances.data[i].launch_options),
+                            instances.data[i].lifecycle_state,
+                            'null',#instances.data[i].metadata,
+                            instances.data[i].region,
+                            str(instances.data[i].shape),
+                            'null',#instances.data[i].shape_config,
+                            'null',#str(instances.data[i].source_details),
+                            str(instances.data[i].system_tags),
+                            instances.data[i].time_created.isoformat(),
+                            'null',#instances.data[i].time_maintenance_reboot_due,
+                            region
 
-                    )
+                        )
                         print('\tListed...', instances.data[i].display_name)
                         computelist.append(row_data)
     except Exception as e:
