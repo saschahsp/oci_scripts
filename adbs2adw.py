@@ -289,7 +289,7 @@ def main_process():
         #'sa-saopaulo-1'
         ]:
             config['region'] = region
-            adbclient = oci.database.DatabaseClient(config)
+            adbclient = oci.database.DatabaseClient(config, signer=signer)
             print('Check for...',config['region'])
             for a in range(len(l_ocid_n)):
                 testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
