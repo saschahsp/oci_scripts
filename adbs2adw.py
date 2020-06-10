@@ -10,9 +10,9 @@ import time
 import pytz
 import logging
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
+filename = 'adbs2adw_' + str(datetime.datetime.utcnow())
+logging.basicConfig(level=logging.DEBUG, filename=filename, filemode="a+",
+                    format="%(asctime)-15s %(levelname)-8s %(message)s")
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
 
@@ -332,7 +332,7 @@ def main_process():
     ############################################
     print("\nCompleted at " + current_time)
     update_time(connection, current_time)
-    logging.info("Completed at " + current_time")
+    logging.info("Completed at " + current_time)
     
 ##########################################################################
 # Execute Main Process
