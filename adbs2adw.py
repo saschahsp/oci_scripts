@@ -8,6 +8,11 @@ import csv
 import cx_Oracle
 import time
 import pytz
+import logging
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+",
+                        format="%(asctime)-15s %(levelname)-8s %(message)s")
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
 
@@ -132,6 +137,7 @@ def check_database_table_structure_adbs(connection):
             cursor.close()
         else:
             print("Table OCI_ADBS exist")
+            logging.info("Table OCI_ADBS exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -155,6 +161,7 @@ def update_adbs(connection,adblist):
     sql = "begin commit; end;"
     cursor.execute(sql)
     print("ADBS Deleted")
+    logging.info("ADBS Deleted")
 ######
     sql = "INSERT INTO OCI_ADBS ("
     sql += "CONTAINER_ID,"
@@ -186,6 +193,7 @@ def update_adbs(connection,adblist):
     connection.commit()
     cursor.close()
     print("ADBs Updated")
+    logging.info("ADBs Updated")
 
 ##########################################################################
 # Insert Update Time
@@ -206,6 +214,7 @@ def update_time(connection, current_time):
     connection.commit()
     cursor.close()
     print("TIME Updated")
+    logging.info("TIME Updated")
 
 ##########################################################################
 # Main
@@ -262,6 +271,7 @@ def main_process():
 
     try:
         print("\nConnecting to ADB Client...")
+        logging.info("Connecting to ADB Client...")
         adbclient = oci.database.DatabaseClient(config, signer=signer)
         if cmd.proxy:
             adbclient.base_client.session.proxies = {'https': cmd.proxy}
@@ -270,8 +280,8 @@ def main_process():
         adblist = []
         for region in [#'ap-sydney-1',
         #'ap-tokyo-1',
-        'us-phoenix-1',
-        'us-ashburn-1',
+        #'us-phoenix-1',
+        #'us-ashburn-1',
         'eu-frankfurt-1',
         'uk-london-1',
         #'ca-toronto-1',
@@ -322,6 +332,7 @@ def main_process():
     ############################################
     print("\nCompleted at " + current_time)
     update_time(connection, current_time)
+    logging.info("Completed at " + current_time")
     
 ##########################################################################
 # Execute Main Process
