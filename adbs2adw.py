@@ -285,7 +285,7 @@ def main_process():
         'eu-frankfurt-1',
         'uk-london-1',
         #'ca-toronto-1',
-        'eu-amsterdam-1'
+        #'eu-amsterdam-1'
         #'sa-saopaulo-1'
         ]:
             config['region'] = region
