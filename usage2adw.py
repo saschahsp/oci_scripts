@@ -67,7 +67,11 @@ import os
 import csv
 import cx_Oracle
 import requests
+import logging
 
+filename = '/home/opc/oci_usage/logs/logfile_usage2adw_' + str(datetime.datetime.utcnow())
+logging.basicConfig(level=logging.DEBUG, filename=filename, filemode="a+",
+                    format="%(asctime)-15s %(levelname)-8s %(message)s")
 
 version = "20.05.18"
 usage_report_namespace = "bling"
@@ -146,7 +150,7 @@ def identity_read_compartments(identity, tenancy):
 
     compartments = []
     print("Loading Compartments...")
-
+    logging.info("Loading Compartments...")
     try:
         # read all compartments to variable
         all_compartments = []
@@ -192,6 +196,7 @@ def identity_read_compartments(identity, tenancy):
         # sort the compartment
         sorted_compartments = sorted(compartments, key=lambda k: k['path'])
         print("    Total " + str(len(sorted_compartments)) + " compartments loaded.")
+        logging.info("    Total " + str(len(sorted_compartments)) + " compartments loaded.")
         return sorted_compartments
 
     except oci.exceptions.RequestException:
@@ -243,6 +248,7 @@ def check_database_table_structure_usage(connection):
         # if table not exist, create it
         if val == 0:
             print("   Table OCI_USAGE was not exist, creating")
+            logging.info("   Table OCI_USAGE was not exist, creating")
             sql = "create table OCI_USAGE ("
             sql += "    TENANT_NAME             VARCHAR2(100),"
             sql += "    FILE_ID                 VARCHAR2(30),"
@@ -267,6 +273,7 @@ def check_database_table_structure_usage(connection):
             print("   Table OCI_USAGE created")
         else:
             print("   Table OCI_USAGE exist")
+            logging.info("   Table OCI_USAGE exist")
 
         # check if TAGS_DATA columns exist in OCI_USAGE table, if not create
         sql = "select count(*) from user_tab_columns where table_name = 'OCI_USAGE' and column_name='TAGS_DATA'"
@@ -318,7 +325,7 @@ def check_database_table_structure_usage(connection):
             update_usage_stats(connection)
         else:
             print("   Table OCI_USAGE_STATS exist")
-
+            logging.info("   Table OCI_USAGE_STATS exist")
         # close cursor
         cursor.close()
 
@@ -403,7 +410,7 @@ def update_cost_stats(connection):
         cursor = connection.cursor()
 
         print("\nMerging statistics into OCI_COST_STATS...")
-
+        logging.info("Merging statistics into OCI_COST_STATS...")
         # run merge to oci_update_stats
         sql = "merge into OCI_COST_STATS a "
         sql += "using "
@@ -433,6 +440,7 @@ def update_cost_stats(connection):
         cursor.execute(sql, {"version": version})
         connection.commit()
         print("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
+        logging.info("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
         cursor.close()
 
     except cx_Oracle.DatabaseError as e:
@@ -452,7 +460,7 @@ def update_price_list(connection):
         cursor = connection.cursor()
 
         print("\nMerging statistics into OCI_PRICE_LIST...")
-
+        logging.info("Merging statistics into OCI_PRICE_LIST...")
         # run merge to oci_update_stats
         sql = "MERGE INTO OCI_PRICE_LIST A "
         sql += "USING "
@@ -485,6 +493,7 @@ def update_price_list(connection):
         cursor.execute(sql)
         connection.commit()
         print("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
+        logging.info("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
         cursor.close()
 
     except cx_Oracle.DatabaseError as e:
@@ -504,7 +513,7 @@ def update_cost_reference(connection):
         cursor = connection.cursor()
 
         print("\nMerging statistics into OCI_COST_REFERENCE...")
-
+        logging.info("Merging statistics into OCI_COST_REFERENCE...")
         # run merge to oci_update_stats
         sql = "merge into OCI_COST_REFERENCE a "
         sql += "using "
@@ -536,6 +545,7 @@ def update_cost_reference(connection):
         cursor.execute(sql)
         connection.commit()
         print("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
+        logging.info("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
         cursor.close()
 
     except cx_Oracle.DatabaseError as e:
@@ -557,7 +567,7 @@ def update_public_rates(connection, tenant_name):
         api_url = "https://itra.oraclecloud.com/itas/.anon/myservices/api/v1/products?partNumber="
 
         print("\nMerging Public Rates into OCI_RATE_CARD...")
-
+        logging.info("Merging Public Rates into OCI_RATE_CARD...")
         # retrieve the SKUS to query
         sql = "select COST_PRODUCT_SKU, COST_CURRENCY_CODE from OCI_PRICE_LIST where tenant_name=:tenant_name"
 
@@ -610,6 +620,7 @@ def update_public_rates(connection, tenant_name):
             connection.commit()
 
         print("   Update Completed, " + str(num_rows) + " rows updated.")
+        logging.info("   Update Completed, " + str(num_rows) + " rows updated.")
         cursor.close()
 
     except cx_Oracle.DatabaseError as e:
@@ -632,7 +643,7 @@ def update_usage_stats(connection):
         cursor = connection.cursor()
 
         print("\nMerging statistics into OCI_USAGE_STATS...")
-
+        logging.info("\nMerging statistics into OCI_USAGE_STATS...")
         # run merge to oci_update_stats
         sql = "merge into OCI_USAGE_STATS a "
         sql += "using "
@@ -658,6 +669,7 @@ def update_usage_stats(connection):
         cursor.execute(sql, {"version": version})
         connection.commit()
         print("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
+        logging.info("   Merge Completed, " + str(cursor.rowcount) + " rows merged")
         cursor.close()
 
     except cx_Oracle.DatabaseError as e:
@@ -716,6 +728,7 @@ def check_database_table_structure_cost(connection):
             print("   Table OCI_COST created")
         else:
             print("   Table OCI_COST exist")
+            logging.info("   Table OCI_COST exist")
 
         # check if OCI_COST_TAG_KEYS table exist, if not create
         sql = "select count(*) from user_tables where table_name = 'OCI_COST_TAG_KEYS'"
@@ -732,6 +745,7 @@ def check_database_table_structure_cost(connection):
             print("   Table OCI_COST_TAG_KEYS created")
         else:
             print("   Table OCI_COST_TAG_KEYS exist")
+            logging.info("   Table OCI_COST_TAG_KEYS exist")
 
         # check if OCI_COST_STATS table exist, if not create
         sql = "select count(*) from user_tables where table_name = 'OCI_COST_STATS'"
@@ -741,6 +755,7 @@ def check_database_table_structure_cost(connection):
         # if table not exist, create it
         if val == 0:
             print("   Table OCI_COST_STATS was not exist, creating")
+            logging.info("   Table OCI_COST_STATS was not exist, creating")
             sql = "CREATE TABLE OCI_COST_STATS ( "
             sql += "    TENANT_NAME             VARCHAR2(100),"
             sql += "    FILE_ID                 VARCHAR2(30),"
@@ -759,6 +774,7 @@ def check_database_table_structure_cost(connection):
             update_cost_stats(connection)
         else:
             print("   Table OCI_COST_STATS exist")
+            logging.info("   Table OCI_COST_STATS exist")
 
         # check if COST_MY_COST_OVERAGE columns exist in OCI_COST_STATS table, if not create
         sql = "select count(*) from user_tab_columns where table_name = 'OCI_COST_STATS' and column_name='COST_MY_COST_OVERAGE'"
@@ -792,6 +808,7 @@ def check_database_table_structure_cost(connection):
             update_cost_reference(connection)
         else:
             print("   Table OCI_COST_REFERENCE exist")
+            logging.info("   Table OCI_COST_REFERENCE exist")
 
         # close cursor
         cursor.close()
@@ -839,6 +856,7 @@ def check_database_table_structure_price_list(connection, tenant_name):
             update_public_rates(connection, tenant_name)
         else:
             print("   Table OCI_PRICE_LIST exist")
+            logging.info("   Table OCI_PRICE_LIST exist")
 
         cursor.close()
 
@@ -883,7 +901,7 @@ def load_cost_file(connection, object_storage, object_file, max_file_id, cmd, te
 
         path_filename = work_report_dir + '/' + filename
         print("   Processing file " + o.name + " - " + str(o.size) + " bytes, " + file_time)
-
+        logging.info("   Processing file " + o.name + " - " + str(o.size) + " bytes, " + file_time)
         # download file
         object_details = object_storage.get_object(usage_report_namespace, str(tenancy.id), o.name)
         with open(path_filename, 'wb') as f:
@@ -1067,7 +1085,7 @@ def load_cost_file(connection, object_storage, object_file, max_file_id, cmd, te
             connection.commit()
             cursor.close()
             print("   Completed  file " + o.name + " - " + str(len(data)) + " Rows Inserted")
-
+            logging.info("   Completed  file " + o.name + " - " + str(len(data)) + " Rows Inserted")
         num += 1
 
         # remove file
@@ -1092,7 +1110,7 @@ def load_cost_file(connection, object_storage, object_file, max_file_id, cmd, te
             connection.commit()
             cursor.close()
             print("   Total " + str(len(data)) + " Tags Merged.")
-
+            logging.info("   Total " + str(len(data)) + " Tags Merged.")
         return num
 
     except cx_Oracle.DatabaseError as e:
@@ -1137,7 +1155,7 @@ def load_usage_file(connection, object_storage, object_file, max_file_id, cmd, t
 
         path_filename = work_report_dir + '/' + filename
         print("   Processing file " + o.name + " - " + str(o.size) + " bytes, " + file_time)
-
+        logging.info("   Processing file " + o.name + " - " + str(o.size) + " bytes, " + file_time)
         # download file
         object_details = object_storage.get_object(usage_report_namespace, str(tenancy.id), o.name)
         with open(path_filename, 'wb') as f:
@@ -1229,7 +1247,7 @@ def load_usage_file(connection, object_storage, object_file, max_file_id, cmd, t
             connection.commit()
             cursor.close()
             print("   Completed  file " + o.name + " - " + str(len(data)) + " Rows Inserted")
-
+            logging.info("   Completed  file " + o.name + " - " + str(len(data)) + " Rows Inserted")
         num += 1
 
         # remove file
@@ -1254,7 +1272,7 @@ def load_usage_file(connection, object_storage, object_file, max_file_id, cmd, t
             connection.commit()
             cursor.close()
             print("   Total " + str(len(data)) + " Tags Merged.")
-
+            logging.info("   Total " + str(len(data)) + " Tags Merged.")
         return num
 
     except cx_Oracle.DatabaseError as e:
@@ -1281,7 +1299,9 @@ def main_process():
     print_header("Running Usage Load to ADW", 0)
     print("Starts at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     print("Command Line : " + ' '.join(x for x in sys.argv[1:]))
-
+    logging.info("Running Usage Load to ADW")
+    logging.info("Starts at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    logging.info("Command Line : " + ' '.join(x for x in sys.argv[1:]))
     ############################################
     # Identity extract compartments
     ############################################
@@ -1289,6 +1309,7 @@ def main_process():
     tenancy = None
     try:
         print("\nConnecting to Identity Service...")
+        logging.info("Connecting to Identity Service...")
         identity = oci.identity.IdentityClient(config, signer=signer)
         if cmd.proxy:
             identity.base_client.session.proxies = {'https': cmd.proxy}
@@ -1308,6 +1329,11 @@ def main_process():
         print("   Home Region : " + tenancy_home_region)
         print("")
 
+        logging.info("   Tenant Name : " + str(tenancy.name))
+        logging.info("   Tenant Id   : " + tenancy.id)
+        logging.info("   App Version : " + version)
+        logging.info("   Home Region : " + tenancy_home_region)
+        logging.info("")  
         # set signer home region
         signer.region = tenancy_home_region
         config['region'] = tenancy_home_region
@@ -1327,12 +1353,14 @@ def main_process():
     connection = None
     try:
         print("\nConnecting to database " + cmd.dname)
+        logging.info("\nConnecting to database " + cmd.dname)
         connection = cx_Oracle.connect(user=cmd.duser, password=cmd.dpass, dsn=cmd.dname, encoding="UTF-8", nencoding="UTF-8")
         cursor = connection.cursor()
         print("   Connected")
-
+        logging.info("   Connected")
         # Check tables structure
         print("\nChecking Database Structure...")
+        logging.info("\nChecking Database Structure...")
         check_database_table_structure_usage(connection)
         check_database_table_structure_cost(connection)
         check_database_table_structure_price_list(connection, tenancy.name)
@@ -1342,6 +1370,7 @@ def main_process():
         # for usage and cost
         ###############################
         print("\nChecking Last Loaded File...")
+        logging.info("Checking Last Loaded File...")
         sql = "select nvl(max(file_id),'0') as file_id from OCI_USAGE where to_char(TENANT_NAME)=:tenant_name"
         cursor.execute(sql, {"tenant_name": str(tenancy.name)})
         max_usage_file_id, = cursor.fetchone()
@@ -1352,6 +1381,8 @@ def main_process():
 
         print("   Max Usage File Id Processed = " + str(max_usage_file_id))
         print("   Max Cost  File Id Processed = " + str(max_cost_file_id))
+        logging.info("   Max Usage File Id Processed = " + str(max_usage_file_id))
+        logging.info("   Max Cost  File Id Processed = " + str(max_cost_file_id))
         cursor.close()
 
     except cx_Oracle.DatabaseError as e:
@@ -1366,22 +1397,23 @@ def main_process():
     ############################################
     try:
         print("\nConnecting to Object Storage Service...")
-
+        logging.info("\nConnecting to Object Storage Service...")
         object_storage = oci.object_storage.ObjectStorageClient(config, signer=signer)
         if cmd.proxy:
             object_storage.base_client.session.proxies = {'https': cmd.proxy}
         print("   Connected")
-
+        logging.info("   Connected")
         #############################
         # Handle Report Usage
         #############################
         print("\nHandling Usage Report...")
+        logging.info("Handling Usage Report...")
         usage_num = 0
         objects = object_storage.list_objects(usage_report_namespace, str(tenancy.id), fields="timeCreated,size", limit=999, prefix="reports/usage-csv/", start="reports/usage-csv/" + max_usage_file_id).data
         for object_file in objects.objects:
             usage_num += load_usage_file(connection, object_storage, object_file, max_usage_file_id, cmd, tenancy, compartments)
         print("\n   Total " + str(usage_num) + " Usage Files Loaded")
-
+        logging.info("Total " + str(usage_num) + " Usage Files Loaded")
         #############################
         # Handle Cost Usage
         #############################
@@ -1391,7 +1423,7 @@ def main_process():
         for object_file in objects.objects:
             cost_num += load_cost_file(connection, object_storage, object_file, max_cost_file_id, cmd, tenancy, compartments)
         print("\n   Total " + str(cost_num) + " Cost Files Loaded")
-
+        logging.info("   Total " + str(cost_num) + " Cost Files Loaded")
         # Handle Index structure if not exist
         check_database_index_structure_usage(connection)
         check_database_index_structure_cost(connection)
@@ -1418,7 +1450,7 @@ def main_process():
     # print completed
     ############################################
     print("\nCompleted at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
+    logging.info("Completed at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 ##########################################################################
 # Execute Main Process
