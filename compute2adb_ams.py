@@ -8,11 +8,6 @@ import csv
 import cx_Oracle
 import time
 import pytz
-import logging
-
-filename = '/home/opc/oci_usage/logs/logfile_adbs2adw_ams_' + str(datetime.datetime.utcnow())
-logging.basicConfig(level=logging.DEBUG, filename=filename, filemode="a+",
-                    format="%(asctime)-15s %(levelname)-8s %(message)s")
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
 
@@ -96,48 +91,52 @@ def set_parser_arguments():
 
     return result
 ##########################################################################
-# def check table adbs
+# def check table ds_nbs
 ##########################################################################
-def check_database_table_structure_adbs(connection):
+def check_database_table_structure_compute(connection):
     try:
         # open cursor
         cursor = connection.cursor()
 
         # check if OCI_COMPARTMENTS table exist, if not create
-        sql = "select count(*) from user_tables where table_name = 'OCI_ADBS'"
+        sql = "select count(*) from user_tables where table_name = 'OCI_COMPUTE'"
         cursor.execute(sql)
         val, = cursor.fetchone()
 
         # if table not exist, create it
         if val == 0:
-            print("Table OCI_ADBS was not exist, creating")
-            sql = "create table OCI_ADBS ("
-            sql += "    CONTAINER_ID             VARCHAR2(200),"
+            print("Table OCI_COMPUTE was not exist, creating")
+            sql = "create table OCI_COMPUTE ("
+            sql += "    AVAILABILITY_DOMAIN             VARCHAR2(200),"
             sql += "    COMPARTMENT_ID             VARCHAR2(200),"
-            sql += "    OCPUS    NUMBER,"
-            sql += "    DISPLAY_NAME      VARCHAR(100),"
-            sql += "    OCID             VARCHAR2(200),"
-            sql += "    AUTO_SCALING            VARCHAR2(30),"
-            sql += "    DEDICATED      VARCHAR2(30),"
-            sql += "    FREE_TIER    VARCHAR2(30),"
-            sql += "    PREVIEW    VARCHAR2(100),"
-            sql += "    LICENSE_MODEL              VARCHAR(30),"
-            sql += "    LIFECYCLE_STATE              VARCHAR2(30),"
-            sql += "    TIME_CREATED              VARCHAR2(30),"
-            sql += "    TIME_DELETION_OF_FREE_ADB              VARCHAR2(300),"
-            sql += "    TIME_MAINTENANCE_BEGIN              VARCHAR2(300),"
-            sql += "    TIME_MAINTENANCE_END              VARCHAR2(300),"
-            sql += "    TIME_RECLAMATION_OF_FREE_ADB              VARCHAR2(300),"
+            sql += "    DEDICATED_VM_HOST_ID             VARCHAR2(200),"
             sql += "    DEFINED_TAGS              VARCHAR2(500),"
-            sql += "    REGION              VARCHAR2(100)"
+            sql += "    DISPLAY_NAME             VARCHAR2(200),"
+            sql += "    EXTENDED_METADATA             VARCHAR2(500),"
+            sql += "    FAULT_DOMAIN             VARCHAR2(200),"
+            sql += "    FREEFORM_TAGS              VARCHAR2(500),"
+            sql += "    ID             VARCHAR2(200),"
+            sql += "    IMAGE_ID             VARCHAR2(200),"
+            sql += "    IPXE_SCRIPT             VARCHAR2(200),"
+            sql += "    LAUNCH_MODE             VARCHAR2(200),"
+            sql += "    LAUNCH_MODE_OPTIONS             VARCHAR2(200),"
+            sql += "    LIFECYCLE_STATE             VARCHAR2(200),"
+            sql += "    METADATA             VARCHAR2(200),"
+            sql += "    REGION             VARCHAR2(200),"
+            sql += "    SHAPE             VARCHAR2(200),"
+            sql += "    SHAPE_CONFIG             VARCHAR2(200),"
+            sql += "    SOURCE_DETAILS             VARCHAR2(200),"
+            sql += "    SYSTEM_TAGS             VARCHAR2(200),"
+            sql += "    TIME_CREATED             VARCHAR2(200),"
+            sql += "    TIME_MAINTENANCE_REBOOT_DUE             VARCHAR2(200),"
+            sql += "    OCI_REGION              VARCHAR2(100)"
             #sql += "    CONSTRAINT primary_key PRIMARY KEY (OCID)"
             sql += ") COMPRESS"
             cursor.execute(sql)
-            print("Table OCI_ADBS created")
+            print("Table OCI_COMPUTE created")
             cursor.close()
         else:
-            print("Table OCI_ADBS exist")
-            logging.info("Table OCI_ADBS exist")
+            print("Table OCI_COMPUTE exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -150,50 +149,53 @@ def check_database_table_structure_adbs(connection):
 
 
 ##########################################################################
-# Update ADBs Function
+# Update DATA SCIENCE SESSION Function
 ##########################################################################
 
-def update_adbs(connection,adblist):
-    
+def update_oci_compute(connection,computelist):
+    #update
     cursor = connection.cursor()
-    #sql = "delete from OCI_ADBS"
+    #sql = "delete from OCI_COMPUTE"
     #cursor.execute(sql)
     #sql = "begin commit; end;"
     #cursor.execute(sql)
-    #print("ADBS Deleted")
-    #logging.info("ADBS Deleted")
+    #print("OCI_COMPUTE Deleted")
 ######
-    sql = "INSERT INTO OCI_ADBS ("
-    sql += "CONTAINER_ID,"
-    sql += "COMPARTMENT_ID,"
-    sql += "OCPUS,"
-    sql += "DISPLAY_NAME,"
-    sql += "OCID,"
-    sql += "AUTO_SCALING,"
-    sql += "DEDICATED,"
-    sql += "FREE_TIER,"
-    sql += "PREVIEW,"
-    sql += "LICENSE_MODEL,"
-    sql += "LIFECYCLE_STATE,"
-    sql += "TIME_CREATED,"
-    sql += "TIME_DELETION_OF_FREE_ADB,"
-    sql += "TIME_MAINTENANCE_BEGIN,"
-    sql += "TIME_MAINTENANCE_END,"
-    sql += "TIME_RECLAMATION_OF_FREE_ADB,"
-    sql += "DEFINED_TAGS,"
-    sql += "REGION"
+    sql = "INSERT INTO OCI_COMPUTE ("
+    sql += "    AVAILABILITY_DOMAIN            ,"
+    sql += "    COMPARTMENT_ID            ,"
+    sql += "    DEDICATED_VM_HOST_ID            ,"
+    sql += "    DEFINED_TAGS            ,  "
+    sql += "    DISPLAY_NAME             ,"
+    sql += "    EXTENDED_METADATA             ,"
+    sql += "    FAULT_DOMAIN             ,"
+    sql += "    FREEFORM_TAGS              ,"
+    sql += "    ID             ,"
+    sql += "    IMAGE_ID           , "
+    sql += "    IPXE_SCRIPT             ,"
+    sql += "    LAUNCH_MODE             ,"
+    sql += "    LAUNCH_MODE_OPTIONS           ,"
+    sql += "    LIFECYCLE_STATE            ,"
+    sql += "    METADATA            ,"
+    sql += "    REGION             ,"
+    sql += "    SHAPE             ,"
+    sql += "    SHAPE_CONFIG             ,"
+    sql += "    SOURCE_DETAILS             ,"
+    sql += "    SYSTEM_TAGS             ,"
+    sql += "    TIME_CREATED             ,"
+    sql += "    TIME_MAINTENANCE_REBOOT_DUE             ,"
+    sql += "    OCI_REGION              "
     sql += ") VALUES ("
-    sql += ":1, :2, :3, :4, :5,  "
-    sql += ":6, :7, :8, :9, :10, "
-    sql += ":11, :12 , :13, :14, :15, :16, :17, :18"
+    sql += " :1, :2, :3, :4, :5,"
+    sql += ":6, :7, :8, :9, :10 ,"
+    sql += ":11, :12, :13, :14, :15, :16, :17, :18, :19 , :20, :21, :22, :23"
     sql += ") "
-
+    
     cursor.prepare(sql)
-    cursor.executemany(None, adblist)
+    cursor.executemany(None, computelist)
     connection.commit()
-    cursor.close()
-    print("ADBs Updated")
-    logging.info("ADBs Updated")
+
+    print("COMPUTE Updated")
 
 ##########################################################################
 # Insert Update Time
@@ -202,7 +204,7 @@ def update_adbs(connection,adblist):
 def update_time(connection, current_time):
     
     cursor = connection.cursor()
-    report = 'ADBS'
+    report = 'COMPUTE'
     time_updated = current_time
                 
 ######
@@ -214,7 +216,6 @@ def update_time(connection, current_time):
     connection.commit()
     cursor.close()
     print("TIME Updated")
-    logging.info("TIME Updated")
 
 ##########################################################################
 # Main
@@ -244,7 +245,7 @@ def main_process():
 
         # Check tables structure
         print("\nChecking Database Structure...")
-        check_database_table_structure_adbs(connection)
+        check_database_table_structure_compute(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
         raise SystemExit
@@ -270,63 +271,70 @@ def main_process():
     ############################################
 
     try:
-        print("\nConnecting to ADB Client...")
-        logging.info("Connecting to ADB Client...")
-        adbclient = oci.database.DatabaseClient(config, signer=signer)
+        print("\nConnecting to Compute Client...")
+        computeclient = oci.core.ComputeClient(config, signer=signer)
         if cmd.proxy:
-            adbclient.base_client.session.proxies = {'https': cmd.proxy}
+            datascienceclient.base_client.session.proxies = {'https': cmd.proxy}
         
-        print("Getting ADBs")
-        adblist = []
+        print("Getting Compute Instances")
+        computelist = []
         for region in [#'ap-sydney-1',
         #'ap-tokyo-1',
         #'us-phoenix-1',
         #'us-ashburn-1',
         #'eu-frankfurt-1',
         #'uk-london-1',
-        #'ca-toronto-1',
         'eu-amsterdam-1'
+        #'ca-toronto-1',
         #'sa-saopaulo-1'
-        ]:
+        ]:#oci.regions.REGIONS:
             config['region'] = region
-            adbclient = oci.database.DatabaseClient(config, signer=signer)
+            computeclient = oci.core.ComputeClient(config, signer=signer)
+            #time.sleep(60)
             print('Check for...',config['region'])
-            for a in range(len(l_ocid_n)):
+            for a in range(len(l_ocid_n)):       
+                instances = computeclient.list_instances(compartment_id = l_ocid_n[a])
                 if a in [10,20,30,40,50,60,70]:
                     time.sleep(60)
-                testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
-                if len(testadb.data) != 0:
-                    for i in range(len(testadb.data)):
+                if len(instances.data) != 0:
+                    for i in range(len(instances.data)):
 
                         row_data = (
-                            testadb.data[i].autonomous_container_database_id,
-                            testadb.data[i].compartment_id,
-                            testadb.data[i].cpu_core_count,
-                            testadb.data[i].display_name,
-                            testadb.data[i].id,
-                            str(testadb.data[i].is_auto_scaling_enabled),
-                            str(testadb.data[i].is_dedicated),
-                            str(testadb.data[i].is_free_tier),
-                            str(testadb.data[i].is_preview),
-                            testadb.data[i].license_model,
-                            testadb.data[i].lifecycle_state,
-                            testadb.data[i].time_created.isoformat(),
-                            str(testadb.data[i].time_deletion_of_free_autonomous_database),
-                            testadb.data[i].time_maintenance_begin.isoformat(),
-                            testadb.data[i].time_maintenance_end.isoformat(),
-                            str(testadb.data[i].time_reclamation_of_free_autonomous_database),
-                            str(testadb.data[i].defined_tags),
+                            instances.data[i].availability_domain,
+                            instances.data[i].compartment_id,
+                            instances.data[i].dedicated_vm_host_id,
+                            str(instances.data[i].defined_tags),
+                            instances.data[i].display_name,
+                            str(instances.data[i].extended_metadata),
+                            instances.data[i].fault_domain,
+                            str(instances.data[i].freeform_tags),
+                            instances.data[i].id,
+                            instances.data[i].image_id,
+                            'null',#instances.data[i].ipxe_script,
+                            instances.data[i].launch_mode,
+                            'null',#str(instances.data[i].launch_options),
+                            instances.data[i].lifecycle_state,
+                            'null',#instances.data[i].metadata,
+                            instances.data[i].region,
+                            str(instances.data[i].shape),
+                            'null',#instances.data[i].shape_config,
+                            'null',#str(instances.data[i].source_details),
+                            str(instances.data[i].system_tags),
+                            instances.data[i].time_created.isoformat(),
+                            'null',#instances.data[i].time_maintenance_reboot_due,
                             region
-                            )
-                        adblist.append(row_data)
+
+                        )
+                        print('\tListed...', instances.data[i].display_name)
+                        computelist.append(row_data)
     except Exception as e:
-        print("\nError extracting ADBs - " + str(e) + "\n")
+        print("\nError extracting Compute - " + str(e) + "\n")
         raise SystemExit           
                         
     ############################################
     # Update ADBs
     ############################################
-    update_adbs(connection,adblist)
+    update_oci_compute(connection,computelist)
     cursor.close()
 
     ############################################
@@ -334,7 +342,6 @@ def main_process():
     ############################################
     print("\nCompleted at " + current_time)
     #update_time(connection, current_time)
-    logging.info("Completed at " + current_time)
     
 ##########################################################################
 # Execute Main Process
