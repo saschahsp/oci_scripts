@@ -358,8 +358,7 @@ def main_process():
     print("\nCompleted at " + current_time)
     logging.info("\nCompleted at " + current_time)
     update_time(connection, current_time)
-    print("Time updated")
-    logging.info("Time updated")
+
     
 ##########################################################################
 # Execute Main Process
