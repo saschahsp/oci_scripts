@@ -10,7 +10,7 @@ import time
 import pytz
 import logging
 
-filename = '/home/opc/oci_usage/logs/logfile_adbs2adw_' + str(datetime.datetime.utcnow())
+filename = '/home/opc/oci_usage/logs/logfile_adbs2adw_ams_' + str(datetime.datetime.utcnow())
 logging.basicConfig(level=logging.DEBUG, filename=filename, filemode="a+",
                     format="%(asctime)-15s %(levelname)-8s %(message)s")
 

@@ -10,6 +10,10 @@ import pytz
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
 
+filename = '/home/opc/oci_usage/logs/logfile_users2adw_' + str(datetime.datetime.utcnow())
+logging.basicConfig(level=logging.DEBUG, filename=filename, filemode="a+",
+                    format="%(asctime)-15s %(levelname)-8s %(message)s")
+
 naive= datetime.datetime.now()
 timezone = pytz.timezone("Europe/Berlin")
 aware1 = naive.astimezone(timezone)

@@ -8,8 +8,13 @@ import csv
 import cx_Oracle
 import time
 import pytz
+import logging
 
 os.putenv("TNS_ADMIN", "/home/opc/wallet/Wallet_ADWshared")
+
+filename = '/home/opc/oci_usage/logs/logfile_compartments2adw_' + str(datetime.datetime.utcnow())
+logging.basicConfig(level=logging.DEBUG, filename=filename, filemode="a+",
+                    format="%(asctime)-15s %(levelname)-8s %(message)s")
 
 naive= datetime.datetime.now()
 timezone = pytz.timezone("Europe/Berlin")
@@ -126,6 +131,7 @@ def check_database_table_structure_compartments(connection):
             print("Table OCI_COMPARTMENTS created")
         else:
             print("Table OCI_COMPARTMENTS exist")
+            logging.info("Table OCI_COMPARTMENTS exist")
 
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database at check_database_table_structure_usage() - " + str(e) + "\n")
@@ -149,6 +155,7 @@ def update_compartments(connection,compartmentlist):
     sql = "begin commit; end;"
     cursor.execute(sql)
     print("COMPARTMENTS Deleted")
+    logging.info("COMPARTMENTS Deleted")
 ######
     # insert bulk to database
     cursor = cx_Oracle.Cursor(connection)
@@ -198,6 +205,7 @@ def update_time(connection, current_time):
     connection.commit()
     cursor.close()
     print("TIME Updated")
+    logging.info("TIME Updated")
 
 ##########################################################################
 # Main
@@ -214,19 +222,23 @@ def main_process():
     print_header("Running Users to ADW", 0)
     print("Starts at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     print("Command Line : " + ' '.join(x for x in sys.argv[1:]))
-
+    logging.info("Running Users to ADW")
+    logging.info("Starts at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    logging.info("Command Line : " + ' '.join(x for x in sys.argv[1:]))
     ############################################
     # connect to database
     ############################################
     connection = None
     try:
         print("\nConnecting to database " + cmd.dname)
+        logging.info("\nConnecting to database " + cmd.dname)
         connection = cx_Oracle.connect(user=cmd.duser, password=cmd.dpass, dsn=cmd.dname, encoding="UTF-8", nencoding="UTF-8")
         cursor = connection.cursor()
         print("   Connected")
-
+        logging.info("   Connected")
         # Check tables structure
         print("\nChecking Database Structure...")
+        logging.info("\nChecking Database Structure...")
         check_database_table_structure_compartments(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
@@ -242,6 +254,7 @@ def main_process():
 
     try:
         print("\nConnecting to IDENTITY/COMPARTMENT Client...")
+        logging.info("\nConnecting to IDENTITY/COMPARTMENT Client...")
         idclient = oci.identity.IdentityClient(config, signer=signer)
         if cmd.proxy:
             idclient.base_client.session.proxies = {'https': cmd.proxy}
@@ -250,12 +263,17 @@ def main_process():
         print("   Tenant Id   : " + tenancy.id)
         print("")
         print("GettingCOMPARTMENTS")
+        logging.info("   Tenant Name : " + str(tenancy.name))
+        logging.info("   Tenant Id   : " + tenancy.id)
+        logging.info("")
+        logging.info("GettingCOMPARTMENTS")        
         data = []
         compartments = idclient.list_compartments(compartment_id=tenancy.id)
         for i in range(len(compartments.data)):
             if i == 6:
                 time.sleep(60)
             print("Getting...", "root / ",compartments.data[i].name, 'i:', i)
+            logging.info("Getting...", "root / ",compartments.data[i].name, 'i:', i)
             row_data = (
                 "root",
                 compartments.data[i].compartment_id,
@@ -274,8 +292,10 @@ def main_process():
             data.append(row_data)
             compartments1 = idclient.list_compartments(compartment_id= compartments.data[i].id)
             print('the parent is: ', 'root', 'i:', i)
+            logging.info('the parent is: ', 'root', 'i:', i)
             if len(compartments1.data) != 0:
                 print('root'," / ", compartments.data[i].name, "nested...")
+                logging.info('root'," / ", compartments.data[i].name, "nested...")
                 for a in range(len(compartments1.data)):
                     row_data = (
                         compartments.data[i].name,
@@ -295,9 +315,12 @@ def main_process():
                     data.append(row_data)
                     print("\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name)
                     print('\tthe parent is: ', compartments.data[i].name, 'i:', i, 'a:',a)
+                    logging.info("\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name)
+                    logging.info('\tthe parent is: ', compartments.data[i].name, 'i:', i, 'a:',a)
                     compartments2 = idclient.list_compartments(compartment_id= compartments1.data[a].id)
                     if len(compartments2.data) != 0:               
                         print('\troot'," / ", compartments.data[i].name,' / ', compartments1.data[i].name,"nested...")
+                        logging.info('\troot'," / ", compartments.data[i].name,' / ', compartments1.data[i].name,"nested...")
                         for b in range(len(compartments2.data)):
                             row_data = (
                                 compartments1.data[a].name,
@@ -316,7 +339,8 @@ def main_process():
                             data.append(row_data)
                             print("\t\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name, " / ",compartments2.data[b].name)
                             print('\t\tthe parent is: ', compartments1.data[a].name, 'i:', i, 'a:',a ,'b:', b)
-
+                            logging.info("\t\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name, " / ",compartments2.data[b].name)
+                            logging.info('\t\tthe parent is: ', compartments1.data[a].name, 'i:', i, 'a:',a ,'b:', b)
 
     except Exception as e:
         print("\nError extracting COMPARTMENTS - " + str(e) + "\n")
@@ -332,7 +356,10 @@ def main_process():
     # print completed
     ############################################
     print("\nCompleted at " + current_time)
+    logging.info("\nCompleted at " + current_time)
     update_time(connection, current_time)
+    print("Time updated")
+    logging.info("Time updated")
     
 ##########################################################################
 # Execute Main Process
