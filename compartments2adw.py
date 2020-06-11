@@ -231,14 +231,14 @@ def main_process():
     connection = None
     try:
         print("\nConnecting to database " + cmd.dname)
-        logging.info("\nConnecting to database " + cmd.dname)
+        logging.info("Connecting to database " + cmd.dname)
         connection = cx_Oracle.connect(user=cmd.duser, password=cmd.dpass, dsn=cmd.dname, encoding="UTF-8", nencoding="UTF-8")
         cursor = connection.cursor()
         print("   Connected")
         logging.info("   Connected")
         # Check tables structure
-        print("\nChecking Database Structure...")
-        logging.info("\nChecking Database Structure...")
+        print("Checking Database Structure...")
+        logging.info("Checking Database Structure...")
         check_database_table_structure_compartments(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
@@ -254,7 +254,7 @@ def main_process():
 
     try:
         print("\nConnecting to IDENTITY/COMPARTMENT Client...")
-        logging.info("\nConnecting to IDENTITY/COMPARTMENT Client...")
+        logging.info("Connecting to IDENTITY/COMPARTMENT Client...")
         idclient = oci.identity.IdentityClient(config, signer=signer)
         if cmd.proxy:
             idclient.base_client.session.proxies = {'https': cmd.proxy}
@@ -292,10 +292,10 @@ def main_process():
             data.append(row_data)
             compartments1 = idclient.list_compartments(compartment_id= compartments.data[i].id)
             print('the parent is: ', 'root', 'i:', i)
-            logging.info('the parent is: ', 'root', 'i:', i)
+            logging.info('the parent is: ', 'root', 'i: {i}'.format(i=i))
             if len(compartments1.data) != 0:
                 print('root'," / ", compartments.data[i].name, "nested...")
-                logging.info('root'," / ", compartments.data[i].name, "nested...")
+                logging.info('root / {compartment_name} nested...'.format(compartment_name=compartments.data[i].name))
                 for a in range(len(compartments1.data)):
                     row_data = (
                         compartments.data[i].name,
@@ -315,12 +315,18 @@ def main_process():
                     data.append(row_data)
                     print("\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name)
                     print('\tthe parent is: ', compartments.data[i].name, 'i:', i, 'a:',a)
-                    logging.info("\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name)
-                    logging.info('\tthe parent is: ', compartments.data[i].name, 'i:', i, 'a:',a)
+                    logging.info('Getting... {compartment_name_i} / {compartment_name_a}'.format(
+                        compartment_name_i = compartments.data[i].name, 
+                        compartment_name_a = compartments1.data[a].name))
+                    
                     compartments2 = idclient.list_compartments(compartment_id= compartments1.data[a].id)
                     if len(compartments2.data) != 0:               
                         print('\troot'," / ", compartments.data[i].name,' / ', compartments1.data[i].name,"nested...")
-                        logging.info('\troot'," / ", compartments.data[i].name,' / ', compartments1.data[i].name,"nested...")
+                        
+                        logging.info('root / {compartment_name_i} / {compartment_name_i_2} nested'.format(
+                            compartment_name_i = compartments.data[i].name, 
+                            compartment_name_i_2 = compartments1.data[i].name
+                        ))
                         for b in range(len(compartments2.data)):
                             row_data = (
                                 compartments1.data[a].name,
@@ -339,9 +345,11 @@ def main_process():
                             data.append(row_data)
                             print("\t\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name, " / ",compartments2.data[b].name)
                             print('\t\tthe parent is: ', compartments1.data[a].name, 'i:', i, 'a:',a ,'b:', b)
-                            logging.info("\t\tGetting...", compartments.data[i].name," / ",compartments1.data[a].name, " / ",compartments2.data[b].name)
-                            logging.info('\t\tthe parent is: ', compartments1.data[a].name, 'i:', i, 'a:',a ,'b:', b)
-
+                            logging.info("Getting... {compartment_name_i} / {compartment_name_a} / {compartment_name_b}".format(
+                                compartment_name_i = compartments.data[i].name,
+                                compartment_name_a = compartments1.data[a].name,
+                                compartment_name_b = compartments2.data[b].name
+                            ))
     except Exception as e:
         print("\nError extracting COMPARTMENTS - " + str(e) + "\n")
         raise SystemExit           
