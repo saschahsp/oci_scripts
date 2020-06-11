@@ -274,6 +274,11 @@ def main_process():
                 time.sleep(60)
             print("Getting...", "root / ",compartments.data[i].name, 'i:', i)
             logging.info("Getting...", "root / ",compartments.data[i].name, 'i:', i)
+            logging.info("Getting... root / {compartment_name}, i: {i}".format(
+                compartment_name = compartments.data[i].name,
+                i=i
+            )
+            )
             row_data = (
                 "root",
                 compartments.data[i].compartment_id,
@@ -292,7 +297,7 @@ def main_process():
             data.append(row_data)
             compartments1 = idclient.list_compartments(compartment_id= compartments.data[i].id)
             print('the parent is: ', 'root', 'i:', i)
-            logging.info('the parent is: ', 'root', 'i: {i}'.format(i=i))
+            logging.info('the parent is: root i: {i}'.format(i=i))
             if len(compartments1.data) != 0:
                 print('root'," / ", compartments.data[i].name, "nested...")
                 logging.info('root / {compartment_name} nested...'.format(compartment_name=compartments.data[i].name))
