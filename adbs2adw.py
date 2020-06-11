@@ -231,19 +231,23 @@ def main_process():
     print_header("Running Users to ADW", 0)
     print("Starts at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     print("Command Line : " + ' '.join(x for x in sys.argv[1:]))
-
+    logging.info("Running Users to ADW", 0)
+    logging.info("Starts at " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    logging.info("Command Line : " + ' '.join(x for x in sys.argv[1:]))
     ############################################
     # connect to database
     ############################################
     connection = None
     try:
         print("\nConnecting to database " + cmd.dname)
+        logging.info("\nConnecting to database " + cmd.dname)
         connection = cx_Oracle.connect(user=cmd.duser, password=cmd.dpass, dsn=cmd.dname, encoding="UTF-8", nencoding="UTF-8")
         cursor = connection.cursor()
         print("   Connected")
-
+        logging.info("   Connected")
         # Check tables structure
         print("\nChecking Database Structure...")
+        logging.info("\nChecking Database Structure...")
         check_database_table_structure_adbs(connection)
     except cx_Oracle.DatabaseError as e:
         print("\nError manipulating database - " + str(e) + "\n")
@@ -257,6 +261,7 @@ def main_process():
         # open cursor
     cursor = connection.cursor()
     print("Getting Compartments from Database")
+    logging.info("Getting Compartments from Database")
     # check if OCI_COMPARTMENTS table exist, if not create
     sql = "select OCID from oci_compartments where LIFECYCLE_STATE = 'ACTIVE'"
     cursor.execute(sql)
@@ -285,12 +290,13 @@ def main_process():
         'eu-frankfurt-1',
         'uk-london-1',
         #'ca-toronto-1',
-        #'eu-amsterdam-1'
+        'eu-amsterdam-1'
         #'sa-saopaulo-1'
         ]:
             config['region'] = region
             adbclient = oci.database.DatabaseClient(config, signer=signer)
             print('Check for...',config['region'])
+            logging.info('Check for...',config['region'])
             for a in range(len(l_ocid_n)):
                 testadb = adbclient.list_autonomous_databases(compartment_id = l_ocid_n[a])
                 if len(testadb.data) != 0:
@@ -317,6 +323,8 @@ def main_process():
                             region
                             )
                         adblist.append(row_data)
+                        print("listed...", testadb.data[i].display_name)
+                        logging.info("listed...", testadb.data[i].display_name)
     except Exception as e:
         print("\nError extracting ADBs - " + str(e) + "\n")
         raise SystemExit           
