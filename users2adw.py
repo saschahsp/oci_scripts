@@ -262,7 +262,7 @@ def main_process():
     connection = None
     try:
         secret_id = 'ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaaaamfkspnqanwpezodbqjdyfjpkzqelc2o7zkmb3htlsdwwpr3ixxtq'
-        secret_bundle = SecretsClient(config).get_secret_bundle(secret_id)
+        secret_bundle = SecretsClient(config, signer=signer).get_secret_bundle(secret_id)
         base64.b64decode(secret_bundle.data.secret_bundle_content.content)
         dpass = print("\nConnecting to database " + cmd.dname)
         logging.info("\nConnecting to database " + cmd.dname)
