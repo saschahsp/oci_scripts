@@ -264,7 +264,7 @@ def main_process():
         secret_id = 'ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaaaamfkspnqanwpezodbqjdyfjpkzqelc2o7zkmb3htlsdwwpr3ixxtq'
         secret_bundle = SecretsClient(config, signer=signer).get_secret_bundle(secret_id)
         #dpass = base64.b64decode(secret_bundle.data.secret_bundle_content.content)
-        print(dpass)
+        #print(dpass)
         print("\nConnecting to database " + cmd.dname)
         logging.info("\nConnecting to database " + cmd.dname)
         connection = cx_Oracle.connect(user=cmd.duser, password=secret_bundle.data.secret_bundle_content.content, dsn=cmd.dname, encoding="UTF-8", nencoding="UTF-8")
