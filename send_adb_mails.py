@@ -130,11 +130,11 @@ def main_process():
             bcss = tmp_amdin_l + ['sascha.hagedorn@oracle.com', 'leopold.gault@oracle.com', 'sinan.petrus.toma@oracle.com', 'mikko.puhakka@oracle.com']
             bccs = ', '.join(list(set(bcss)))
             cursor.callproc('SEND_ADB_MAIL',
-                            ['apex_mail@oracle.com',
-                            l_flaggedadbs[i][0],
-                            'Private ADB',
-                            str(l_flaggedadbs[i][0].split('.')[0].title()),
-                            str(l_flaggedadbs[i][1]),
+                            ['apex_mail@oracle.com', #from
+                            l_flaggedadbs[i][0], #to email
+                            'Private ADB', #subject
+                            str(l_flaggedadbs[i][0].split('.')[0].title()), #first name from email
+                            str(l_flaggedadbs[i][1]), #ADB list
                             bccs
                             ])
             print("Pushed Email to ",str(l_flaggedadbs[i][0].split('.')[0].title()),' (Email:',l_flaggedadbs[i][0],') regarding ', str(l_flaggedadbs[i][1]),' to ', bccs)
